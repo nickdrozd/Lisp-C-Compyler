@@ -53,15 +53,6 @@ def appendInstrSeqs(*seqs):
 
 	return returnSeq
 
-'''
-	def appendSeqList(seqs):
-		if len(seqs) == 0:
-			return emptyInstrSeq
-		else:
-			return append2Seqs(seqs[0], appendSeqList(seqs[1:]))
-
-	return appendSeqList(seqs)
-'''
 
 def tackOnInstrSeq(seq, bodySeq):
 	needed = registersNeeded(seq)
@@ -83,7 +74,6 @@ def parallelInstrSeqs(seq1, seq2):
 	statements1 = statements(seq1)
 	statements2 = statements(seq2)
 	statementSeq = statements1 + statements2
-	# statementSeq = statements(seq1) + statements(seq2)
 
 	return makeInstrSeq(needed, modified, statementSeq)
 
@@ -100,7 +90,7 @@ def preserving(regs, seq1, seq2):
 			save = "save(%(firstReg)s);" % locals()
 			seq1Statements = statements(seq1)
 			restore = "restore(%(firstReg)s);" % locals()
-			seq1PresInstr = save + seq1Statements + restore
+			seq1PresInstr = save + '\n' + seq1Statements + '\n' + restore
 
 			firstSeq1Needs = listUnion([firstReg], registersNeeded(seq1))
 			firstSeq1Mods = listDiff(registersModified(seq1), [firstReg])
