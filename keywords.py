@@ -11,8 +11,9 @@ cont = 'cont'
 env = 'env'
 val = 'val'
 func = 'func'
-expr = 'expr'
 arglist = 'arglist'
+
+allRegs = [cont, env, val, func, arglist]
 
 # linkages
 ret = 'return'
