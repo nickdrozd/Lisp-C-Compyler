@@ -90,7 +90,7 @@ def preserving(regs, seq1, seq2):
 			save = "save(%(firstReg)s);" % locals()
 			seq1Statements = statements(seq1)
 			restore = "restore(%(firstReg)s);" % locals()
-			seq1PresInstr = save + '\n' + seq1Statements + '\n' + restore
+			seq1PresInstr = [save] + seq1Statements + [restore]
 
 			firstSeq1Needs = listUnion([firstReg], registersNeeded(seq1))
 			firstSeq1Mods = listDiff(registersModified(seq1), [firstReg])
