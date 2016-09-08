@@ -1,4 +1,6 @@
-# TODO: default args to comp funcs (target=val and linkage=nex) ???
+# TODO: 
+#	* default args to comp funcs (target=val and linkage=nex) ???
+#	* add COMP_LABEL continue dispatch to ec_main.c
 
 # TODO: figure out which funcs are needed
 from keywords import *
@@ -171,9 +173,10 @@ def compLambdaBody(expr, funcEntry):
 	# instr = label + '\n\t' + assignFuncEnv + '\n\t' + parseParams + '\n\t' + extendFuncEnv
 
 	instr = labelInstrs(label, assignFuncEnv, 
-						parseParams, extendFuncEnv)
+					parseParams, extendFuncEnv)
 
-	instrSeq = [[env, func, arglist], [env], [instr]]
+	instrSeq = makeInstrSeq([env, func, arglist], 
+								[env], [instr])
 	bodySeq = compSeq(lambdaBody(expr), val, ret)
 	appended = appendInstrSeqs(instrSeq, bodySeq)
 
@@ -198,27 +201,67 @@ def compApp(expr, target=val, linkage=nex):
 				funcCode, arglPresFunc)
 
 def constructArglist(argCodes):
-	return emptyInstrSeq
+	# argCodes = reversed(argCodes)
 
+	if len(argCodes) == 0:
+		instr = "arglist = NULLOBJ;"
+		return makeInstrSeq([], [arglist], [instr])
+	# else:
+	instr = "arglist = makeList(val, NULLOBJ);"
+	instrSeq = makeInstrSeq([val], [arglist], 
+										[instr])
+	lastArg = argCodes[-1]
+	codeToGetLastArg = appendInstrSeqs(lastArg, 
+										instrSeq)
 
-
+	restArgs = argCodes[:-1]
+	if len(restArgs) == 0:
+		return codeToGetLastArg
+	else:
+		return preserving([env], codeToGetLastArg,
+					codeToGetRestArgs(restArgs))
 
 
 def codeToGetRestArgs(argCodes):
-	return emptyInstrSeq
+	nextArg = argCodes[0]
+	instr = "arglist = makeList(val, arglist);"
+	instrSeq = makeInstrSeq([val, arglist], 
+					[arglist], [instr])
+	codeForNextArg = preserving([arglist], 
+							nextArg, instrSeq)
 
-
-
-
-
+	restArgs = argCodes[1:]
+	if len(restArgs) == 0:
+		return codeForNextArg
+	else:
+		return preserving([env], codeForNextArg,
+					codeToGetRestArgs(restArgs))
 
 
 def compFuncCall(target, linkage):
-	return emptyInstrSeq
+	primBranch = makeLabel("PRIMITIVE")
+	compBranch = makeLabel("COMPILED")
+	afterCall = makeLabel("AFTER_CALL")
+	compLink = afterCall if linkage == nex else linkage
 
+	test = "if (isPrimitive(func))"
+	gotoPrim = "goto %(primBranch)s" % locals()
+	testGotoPrim = test + '\n\t' + gotoPrim
+	testPrimSeq = makeInstrSeq([func], [], 
+							[testGotoPrim])
 
+	applyPrim = "%(target)s = applyPrimitive(func, arglist);" % locals()
+	applyPrimSeq = makeInstrSeq([func, arglist],
+					[target], [applyPrim])
+	
+	compLink = compFuncApp(target, compLink)
+	primLink = endWithLink(applyPrimSeq, linkage)
 
+	compLabeled = appendInstrSeqs(compBranch, compLink)
+	primLabeled = appendInstrSeqs(primBranch, primLink)
+	compPrimSeqs = parallelInstrSeqs(compLabeled, primLabeled)
 
+	return appendInstrSeqs(testPrimSeq, compPrimSeqs)
 
 
 def compFuncApp(target, linkage):
@@ -226,21 +269,35 @@ def compFuncApp(target, linkage):
 	retLink = linkage == ret
 
 	if valTarg and not retLink:
-		pass
-
+		assignCont = "cont = LABELOBJ(%(linkage)s);" % locals()
+		assignVal = "val = compFuncLabel(func);"
+		instr = assignCont + '\n' + assignVal
+		return makeInstrSeq([func], allRegs, [instr])
 
 	elif not valTarg and not retLink:
-		pass
+		funcReturn = makeLabel('FUNC_RETURN')
 
+		assignCont = "cont = LABELOBJ(%(funcReturn)s)" % locals()
+		assignVal = "val = compFuncLabel(func);"
+		gotoVal = "goto COMP_LABEL;"
+		assignTarget = "%(target)s = val;" % locals()
+		# FIGURE OUT COMPILED GOTO DISPATCH
+		gotoLinkage = "goto COMP_LABEL;" 
+
+		instr = joinInstrsNewlines(assignCont, assignVal,
+			gotoVal, funcReturn, assignTarget, gotoLinkage)
+
+		return makeInstrSeq([func], allRegs, instr)
 
 	elif valTarg and retLink:
-		pass
+		assignVal = "val = compFuncLabel(func);"
+		gotoVal = "goto COMP_LABEL;"
 
-
-
+		instr = assignVal + '\n' + gotoVal
+		return makeInstrSeq([func, cont], allRegs, [instr])
 
 	else:
-		pass
+		Exception('bad function call', 'compFuncApp')
 
 
 

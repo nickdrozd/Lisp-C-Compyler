@@ -29,6 +29,6 @@ def compyle(exprSeq,target=val,linkage=nex):
 # ]
 
 
-exprSeq = ['(f 5)']
+exprSeq = ['(f 5 6)']
 
 compyle(exprSeq)
