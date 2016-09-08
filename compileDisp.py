@@ -245,7 +245,7 @@ def compFuncCall(target, linkage):
 	compLink = afterCall if linkage == nex else linkage
 
 	test = "if (isPrimitive(func))"
-	gotoPrim = "goto %(primBranch)s" % locals()
+	gotoPrim = "goto %(primBranch)s;" % locals()
 	testGotoPrim = test + '\n\t' + gotoPrim
 	testPrimSeq = makeInstrSeq([func], [], 
 							[testGotoPrim])
@@ -255,13 +255,14 @@ def compFuncCall(target, linkage):
 					[target], [applyPrim])
 	
 	compLink = compFuncApp(target, compLink)
-	primLink = endWithLink(applyPrimSeq, linkage)
+	primLink = endWithLink(linkage, applyPrimSeq)
 
-	compLabeled = appendInstrSeqs(compBranch, compLink)
-	primLabeled = appendInstrSeqs(primBranch, primLink)
+	compLabeled = appendInstrSeqs(compBranch + ':', compLink)
+	primLabeled = appendInstrSeqs(primBranch + ':', primLink)
 	compPrimSeqs = parallelInstrSeqs(compLabeled, primLabeled)
 
-	return appendInstrSeqs(testPrimSeq, compPrimSeqs)
+	return appendInstrSeqs(testPrimSeq, 
+				compPrimSeqs, afterCall + ':')
 
 
 def compFuncApp(target, linkage):
@@ -279,6 +280,7 @@ def compFuncApp(target, linkage):
 
 		assignCont = "cont = LABELOBJ(%(funcReturn)s)" % locals()
 		assignVal = "val = compFuncLabel(func);"
+		# missing a goto?
 		gotoVal = "goto COMP_LABEL;"
 		assignTarget = "%(target)s = val;" % locals()
 		# FIGURE OUT COMPILED GOTO DISPATCH
