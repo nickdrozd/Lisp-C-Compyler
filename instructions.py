@@ -102,6 +102,14 @@ def preserving(regs, seq1, seq2):
 
 
 
+def joinInstrsNewlines(*instrs):
+	retInstr = instrs[0]
+	for instr in instrs[1:]:
+		retInstr += '\n' + instr
+	return retInstr
+
+
+
 def listUnion(s1, s2):
 	result = []
 	for i in s1:
