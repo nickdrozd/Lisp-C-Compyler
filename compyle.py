@@ -4,12 +4,12 @@ from instructions import statements
 from keywords import *
 
 
-def compyle(exprSeq,target=val,linkage=nex):
+def compyle(exprSeq):
 	print('\n')
 
 	for expr in exprSeq:
 		parsed = parse(expr)
-		compiled = compileDisp(parsed,target,linkage)
+		compiled = compileDisp(parsed)
 		code = statements(compiled)
 
 		for line in code:
