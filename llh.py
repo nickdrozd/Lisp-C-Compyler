@@ -4,7 +4,7 @@ CLASSIFIERS
 
 from keywords import *
 
-# numbers, etc
+# numbers
 
 def isNum(exp):
 	try:
@@ -29,7 +29,7 @@ def isQuote(exp):
 	return tag == QUOTE_KEY
 
 def quotedText(exp):
-	return exp[1]
+	return exp[1:]
 
 # assignment
 
@@ -82,11 +82,7 @@ def lambdaParams(exp):
 def lambdaBody(exp):
 	return exp[2:]
 
-# commencement
-
-def isBegin(exp):
-	tag = getTag(exp)
-	return tag == BEGIN_KEY
+# sequence
 
 def firstExp(seq):
 	return seq[0]
@@ -97,6 +93,10 @@ def restExps(seq):
 def isLastExp(seq):
 	return len(seq[1:]) == 0
 
+def isBegin(exp):
+	tag = getTag(exp)
+	return tag == BEGIN_KEY
+
 # function application
 
 def operator(exp):
@@ -104,6 +104,8 @@ def operator(exp):
 
 def operands(exp):
 	return exp[1:]
+
+
 
 
 

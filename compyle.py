@@ -18,12 +18,17 @@ def compyle(exprSeq,target=val,linkage=nex):
 
 	print('\n')
 
-# exprSeq = ['(define x y)', 
-# 			'(define a 1)',
-# 			'(define b 0)',
-# 			'(if x a b)',]
 
 
-exprSeq = ['(define f (lambda (x) 5))']
+# exprSeq = [
+# 	'(define x (quote + y z))', 
+# 	'(define a 1)',
+# 	'(define b 0)',
+# 	'(define c (if (if p q r) a b))',
+# 	'(define f (lambda (x) 5))'
+# ]
+
+
+exprSeq = ['(f 5)']
 
 compyle(exprSeq)

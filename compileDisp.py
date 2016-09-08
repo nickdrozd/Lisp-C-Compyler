@@ -1,4 +1,4 @@
-# TODO: newlines for code text
+# TODO: default args to comp funcs (target=val and linkage=nex) ???
 
 # TODO: figure out which funcs are needed
 from keywords import *
@@ -8,7 +8,7 @@ from llh import *
 from parse import schemify
 
 
-def compileDisp(expr, target, linkage):
+def compileDisp(expr, target=val, linkage=nex):
 	if isNum(expr):
 		return compNum(expr, target, linkage)
 	elif isVar(expr):
@@ -52,22 +52,23 @@ def endWithLink(linkage, instrSeq):
 # these expressions to Obj form
 
 def compNum(expr, target, linkage):
-	# instr = target + " = " + expr + ';'
 	instr = "%(target)s = NUMOBJ(%(expr)s);" % locals()
-	# instr = "%(target)s = expr;"
 	instrSeq = makeInstrSeq([], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
+# TODO
 def compQuote(expr, target, linkage):
-	# instr = target + ' = ' + quotedText(expr) + ';'
-	# text = quotedText(expr)
-	instr = "%(target)s = %(text)s;" % locals()
-	# instr = "%(target)s = quotedText(expr);"
+	text = quotedText(expr)
+	lispText = schemify(text)
+
+	parseText = 'unev = parse("%(lispText)s\\n");' % locals()
+	assignText = "%(target)s = unev;" % locals()
+
+	instr = parseText + '\n' + assignText
 	instrSeq = makeInstrSeq([], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
 def compVar(expr, target, linkage):
-	# instr = target + ' = ' + 'lookup(' + expr + ', env);'
 	instr = "%(target)s = lookup(%(expr)s, env);" % locals()
 	instrSeq = makeInstrSeq([env], [target], [instr])
 	return endWithLink(linkage, instrSeq)
@@ -97,7 +98,7 @@ def compDef(expr, target, linkage):
 	comp = compAssDef(defVar, defVal, 'defineVar')
 	return comp(expr, target, linkage)
 
-def compIf(expr, target, linkage):
+def compIf(expr, target=val, linkage=nex):
 	trueBranch = makeLabel('TRUE_BRANCH')
 	falseBranch = makeLabel('FALSE_BRANCH')
 	afterIf = makeLabel('AFTER_IF') + ':'
@@ -105,6 +106,7 @@ def compIf(expr, target, linkage):
 
 	testCode = compileDisp(ifTest(expr), val, nex)
 	thenCode = compileDisp(ifThen(expr), target, thenLink)
+	# fallthrough after false branch?
 	elseCode = compileDisp(ifElse(expr), target, linkage)
 
 	isTrueInstr = "if (isTrue(val)) " + '\n'
@@ -135,7 +137,7 @@ def compSeq(seq, target, linkage):
 		return preserving(preserved, compFirst, compRest)
 
 
-def compLambda(expr, target, linkage):
+def compLambda(expr, target=val, linkage=nex):
 	funcEntry = makeLabel('ENTRY')
 	afterLambda = makeLabel('AFTER_LAMBDA')
 
@@ -178,14 +180,14 @@ def compLambdaBody(expr, funcEntry):
 	return appended
 
 
-def compApp(expr, target, linkage):
+def compApp(expr, target=val, linkage=nex):
 	function = operator(expr)
 	arguments = operands(expr)
-	funcCode = compileDisp(function, func, nex)
+	funcCode = compileDisp(function, target=func)
 	argCodes = list(map(
-					(lambda op: 
-						compileDisp(op, val, nex)),
-					operands))
+					(lambda arg: 
+						compileDisp(arg)),
+					arguments))
 
 	argListCode = constructArglist(argCodes)
 	funcCallCode = compFuncCall(target, linkage)
@@ -196,14 +198,14 @@ def compApp(expr, target, linkage):
 				funcCode, arglPresFunc)
 
 def constructArglist(argCodes):
-	pass
+	return emptyInstrSeq
 
 
 
 
 
 def codeToGetRestArgs(argCodes):
-	pass
+	return emptyInstrSeq
 
 
 
@@ -212,7 +214,7 @@ def codeToGetRestArgs(argCodes):
 
 
 def compFuncCall(target, linkage):
-	pass
+	return emptyInstrSeq
 
 
 
