@@ -5,6 +5,7 @@ from keywords import *
 from instructions import *
 from labels import makeLabel
 from llh import *
+from parse import schemify
 
 
 def compileDisp(expr, target, linkage):
@@ -96,31 +97,6 @@ def compDef(expr, target, linkage):
 	comp = compAssDef(defVar, defVal, 'defineVar')
 	return comp(expr, target, linkage)
 
-'''
-def compAss(expr, target, linkage):
-	var = assVar(expr)
-	valueCode = compileDisp(assVal(expr), val, nex)
-
-	# leave assVal as return val
-	instr = "setVar(%(var)s, val, env);" % locals()
-	instrSeq = makeInstrSeq([env, val], [target], [instr])
-
-	preserved = preserving([env], valueCode, instrSeq)
-	return endWithLink(linkage, preserved)
-
-def compDef(expr, target, linkage):
-	var = defVar(expr)
-	valueCode = compileDisp(assVal(expr), val, nex)
-
-	# leave defVal as return val
-	instr = "defineVar(%(var)s, val, env);" % locals()
-	# remove target from modified? (compAss too)
-	instrSeq = makeInstrSeq([env, val], [target], [instr]) 
-
-	preserved = preserving([env], valueCode, instrSeq)
-	return endWithLink(linkage, preserved)
-'''
-
 def compIf(expr, target, linkage):
 	trueBranch = makeLabel('TRUE_BRANCH')
 	falseBranch = makeLabel('FALSE_BRANCH')
@@ -137,8 +113,8 @@ def compIf(expr, target, linkage):
 	testGotoInstr = isTrueInstr + gotoTrueInstr + gotoFalseInstr
 	testGotoSeq = makeInstrSeq([val], [], [testGotoInstr])
 
-	thenCodeLabeled = appendInstrSeqs(trueBranch+':', thenCode)
-	elseCodeLabeled = appendInstrSeqs(falseBranch+':', elseCode)
+	thenCodeLabeled = appendInstrSeqs(trueBranch + ':', thenCode)
+	elseCodeLabeled = appendInstrSeqs(falseBranch + ':', elseCode)
 
 	thenElseSeq = parallelInstrSeqs(thenCodeLabeled, elseCodeLabeled)
 	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, thenElseSeq, afterIf)
@@ -169,22 +145,31 @@ def compLambda(expr, target, linkage):
 	instr = "%(target)s = makeCompFunc(%(funcEntry)s, env)" % locals()
 	instrSeq = makeInstrSeq([env], [target], [instr])
 
-	endLink = endWithLink(lambdaLink, instrSeq)
-	tackedOn = tackOnInstrSeq(endLink, lambdaBody)
-	appended = appendInstrSeqs(tackedOn, afterLambda+':')
+	instrLinked = endWithLink(lambdaLink, instrSeq)
+	tackedOn = tackOnInstrSeq(instrLinked, lambdaBody)
+	appended = appendInstrSeqs(tackedOn, afterLambda + ':')
 
 	return appended
 
 def compLambdaBody(expr, funcEntry):
-	# how to represent parameters?
-	# params = ???
-	# params = "lambdaParams(expr)"
+	params = lambdaParams(expr)
+	lispParams = schemify(params)
 
 	label = "%(funcEntry)s:" % locals() # might turn out redundant
 	assignFuncEnv = "env = compiledFuncEnv(func);"
-	extendFuncEnv = "env = extendEnv(params, arglist, env);" # %(params)s ?
+	parseParams = 'unev = parse("%(lispParams)s\\n");' % locals()
+	extendFuncEnv = "env = extendEnv(unev, arglist, env);" # %(params)s ?
 
-	instr = label + '\n\t' + assignFuncEnv + '\n\t' + extendFuncEnv
+	def labelInstrs(label, *instrs):
+		totalInstr = label
+		for instr in instrs:
+			totalInstr += '\n\t' + instr
+		return totalInstr
+
+	# instr = label + '\n\t' + assignFuncEnv + '\n\t' + parseParams + '\n\t' + extendFuncEnv
+
+	instr = labelInstrs(label, assignFuncEnv, 
+						parseParams, extendFuncEnv)
 
 	instrSeq = [[env, func, arglist], [env], [instr]]
 	bodySeq = compSeq(lambdaBody(expr), val, ret)
