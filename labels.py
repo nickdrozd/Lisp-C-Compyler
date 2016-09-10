@@ -1,5 +1,14 @@
 # labels
 
+labels = []
+
+def labelInfo(label):
+	main_label = 'main_label = "%(label)s";' % locals()
+	print_info = "if (INFO) print_info();"
+	return '\t\t' + main_label + '\n\t\t' + print_info
+
+# label numbering
+
 label_count = 0
 
 def newLabelNumber():
@@ -8,7 +17,10 @@ def newLabelNumber():
 	return label_count
 
 def makeLabel(name):
-	return name + '_' + str(newLabelNumber())
+	global labels
+	label = name + '_' + str(newLabelNumber())
+	labels += [label]
+	return label
 
 # for this to work, numbers can't be used 
 # in label names. for instance, 
