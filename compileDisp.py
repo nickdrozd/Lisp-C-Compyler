@@ -1,11 +1,15 @@
 # TODO: 
 #	* default args to comp funcs (target=val and linkage=nex) ???
 #	* add COMP_LABEL continue dispatch to ec_main.c
+#	* list of parse calls to constants, e.g
+#		* Obj obj4 = parse("n\n");
+#		* use somethine like makeLabel
 
 # TODO: figure out which funcs are needed
 from keywords import *
 from instructions import *
 from labels import makeLabel
+from labels import labelInfo
 from llh import *
 from parse import schemify
 
@@ -58,7 +62,6 @@ def compNum(expr, target, linkage):
 	instrSeq = makeInstrSeq([], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
-# TODO
 def compQuote(expr, target, linkage):
 	text = quotedText(expr)
 	lispText = schemify(text)
@@ -71,7 +74,7 @@ def compQuote(expr, target, linkage):
 	return endWithLink(linkage, instrSeq)
 
 def compVar(expr, target, linkage):
-	instr = "%(target)s = lookup(%(expr)s, env);" % locals()
+	instr = "%(target)s = lookup(NAMEOBJ(\"%(expr)s\"), env);" % locals()
 	instrSeq = makeInstrSeq([env], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
@@ -84,7 +87,7 @@ def compAssDef(varSel, valSel, CFunc):
 		valueCode = compileDisp(valSel(expr), val, nex)
 
 		# leave ass/def val as return val
-		instr = CFunc + "(%(var)s, val, env);" % locals()
+		instr = CFunc + "(NAMEOBJ(\"%(var)s\"), val, env);" % locals()
 		instrSeq = makeInstrSeq([env, val], [target], [instr])
 
 		preserved = preserving([env], valueCode, instrSeq)
@@ -146,7 +149,7 @@ def compLambda(expr, target=val, linkage=nex):
 	lambdaLink = afterLambda if linkage == nex else linkage
 	lambdaBody = compLambdaBody(expr, funcEntry)
 	
-	instr = "%(target)s = makeCompFunc(%(funcEntry)s, env)" % locals()
+	instr = "%(target)s = MKCOMP(%(funcEntry)s, env);" % locals()
 	instrSeq = makeInstrSeq([env], [target], [instr])
 
 	instrLinked = endWithLink(lambdaLink, instrSeq)
@@ -160,7 +163,7 @@ def compLambdaBody(expr, funcEntry):
 	lispParams = schemify(params)
 
 	label = "%(funcEntry)s:" % locals() # might turn out redundant
-	assignFuncEnv = "env = compiledFuncEnv(func);"
+	assignFuncEnv = "env = GETCOMPENV(func);"
 	parseParams = 'unev = parse("%(lispParams)s\\n");' % locals()
 	extendFuncEnv = "env = extendEnv(unev, arglist, env);" # %(params)s ?
 
@@ -207,7 +210,7 @@ def constructArglist(argCodes):
 		instr = "arglist = NULLOBJ;"
 		return makeInstrSeq([], [arglist], [instr])
 	# else:
-	instr = "arglist = makeList(val, NULLOBJ);"
+	instr = "arglist = LISTOBJ(makeList(val, NULL));"
 	instrSeq = makeInstrSeq([val], [arglist], 
 										[instr])
 	lastArg = argCodes[-1]
@@ -224,7 +227,7 @@ def constructArglist(argCodes):
 
 def codeToGetRestArgs(argCodes):
 	nextArg = argCodes[0]
-	instr = "arglist = makeList(val, arglist);"
+	instr = "arglist = LISTOBJ(makeList(val, GETLIST(arglist)));"
 	instrSeq = makeInstrSeq([val, arglist], 
 					[arglist], [instr])
 	codeForNextArg = preserving([arglist], 
@@ -271,7 +274,7 @@ def compFuncApp(target, linkage):
 
 	if valTarg and not retLink:
 		assignCont = "cont = LABELOBJ(%(linkage)s);" % locals()
-		assignVal = "val = compFuncLabel(func);"
+		assignVal = "val = COMPLABOBJ(func);"
 		instr = assignCont + '\n' + assignVal
 		return makeInstrSeq([func], allRegs, [instr])
 
@@ -279,7 +282,7 @@ def compFuncApp(target, linkage):
 		funcReturn = makeLabel('FUNC_RETURN')
 
 		assignCont = "cont = LABELOBJ(%(funcReturn)s)" % locals()
-		assignVal = "val = compFuncLabel(func);"
+		assignVal = "val = COMPLABOBJ(func);"
 		# missing a goto?
 		gotoVal = "goto COMP_LABEL;"
 		assignTarget = "%(target)s = val;" % locals()
@@ -292,7 +295,7 @@ def compFuncApp(target, linkage):
 		return makeInstrSeq([func], allRegs, instr)
 
 	elif valTarg and retLink:
-		assignVal = "val = compFuncLabel(func);"
+		assignVal = "val = COMPLABOBJ(func);"
 		gotoVal = "goto COMP_LABEL;"
 
 		instr = assignVal + '\n' + gotoVal
