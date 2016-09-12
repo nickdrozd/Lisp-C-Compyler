@@ -1,3 +1,15 @@
+'''
+compyle takes one argument, a list of Lisp strings.
+Each string will get compiled to assembly-like C 
+and then printed.
+
+The file is set to print the strings in library.py, 
+but simply sequences can be used. For instance, try
+compyle(['(define f (lambda () 5))', '(define x (f))']).
+
+TODO: figure out how to get the output into a file!
+'''
+
 from parse import parse
 from compileDisp import compileDisp
 from instructions import statements
@@ -9,7 +21,6 @@ from library import library
 def compyle(exprSeq):
 	print('\n')
 
-	print('#define COMPILED_CODE_BODY \\')
 	for expr in exprSeq:
 		parsed = parse(expr)
 		compiled = compileDisp(parsed)
@@ -17,7 +28,28 @@ def compyle(exprSeq):
 
 		for line in code:
 			print(line)
-	print('goto DONE;')
+
+	print('\n')
+
+compyle(library)
+
+
+
+""" SAVE THIS """
+
+# def compyle(exprSeq):
+# 	print('\n')
+
+# 	# print('#define COMPILED_CODE_BODY \\')
+# 	for expr in exprSeq:
+# 		parsed = parse(expr)
+# 		compiled = compileDisp(parsed)
+# 		code = statements(compiled)
+
+# 		for line in code:
+# 			print(line)
+
+	# print('goto DONE;')
 
 	# labelsLen = len(labels)
 	# print('#define ALL_COMPILED_LABELS \\')
@@ -51,10 +83,7 @@ def compyle(exprSeq):
 	# 	print('\tprintf(\"' + label + ' \");')
 	# 	print('\tbreak;')
 
-	print('\n')
-
-
-compyle(library)
+	# print('\n')
 
 
 
