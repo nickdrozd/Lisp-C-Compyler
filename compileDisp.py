@@ -34,7 +34,8 @@ def compileDisp(expr, target=val, linkage=nex):
 		expr = transformOr(expr)
 		return compIf(expr, target, linkage)
 	elif isBegin(expr):
-		return compBegin(expr, target, linkage)
+		expr = beginActions(expr)
+		return compSeq(expr, target, linkage)
 	else:
 		return compApp(expr, target, linkage)
 

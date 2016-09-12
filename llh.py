@@ -101,6 +101,9 @@ def isLastExp(seq):
 def isBegin(exp):
 	return hasForm(exp, 'begin')
 
+def beginActions(exp):
+	return exp[1:]
+
 # function application
 
 def operator(exp):
