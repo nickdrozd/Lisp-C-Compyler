@@ -44,7 +44,6 @@ def compileDisp(expr, target=val, linkage=nex):
 
 
 
-
 def compLink(linkage):
 	if linkage == ret:
 		return makeInstrSeq([cont], [], ['goto CONTINUE;'])
@@ -111,22 +110,27 @@ def compIf(expr, target=val, linkage=nex):
 	afterIf = makeLabel('AFTER_IF')
 	thenLink = afterIf if linkage == nex else linkage
 
+	trueBranchInfo = labelInfo(trueBranch)
+	falseBranchInfo = labelInfo(falseBranch)
+	afterIfInfo = labelInfo(afterIf)
+
 	testCode = compileDisp(ifTest(expr), val, nex)
 	thenCode = compileDisp(ifThen(expr), target, thenLink)
 	# fallthrough after false branch?
 	elseCode = compileDisp(ifElse(expr), target, linkage)
 
-	isTrueInstr = "if (isTrue(val)) " + '\n'
-	gotoTrueInstr = "\tgoto %(trueBranch)s;" % locals() + '\n'
+	isTrueInstr = "if (isTrue(val)) "
+	gotoTrueInstr = "goto %(trueBranch)s;" % locals()
 	gotoFalseInstr = "goto %(falseBranch)s;" % locals()
-	testGotoInstr = isTrueInstr + gotoTrueInstr + gotoFalseInstr
+	testGotoInstr = joinInstrsNewlines(isTrueInstr, 
+						gotoTrueInstr, gotoFalseInstr)
 	testGotoSeq = makeInstrSeq([val], [], [testGotoInstr])
 
-	thenCodeLabeled = appendInstrSeqs(trueBranch + ':', thenCode)
-	elseCodeLabeled = appendInstrSeqs(falseBranch + ':', elseCode)
+	thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
+	elseCodeLabeled = appendInstrSeqs(falseBranchInfo, elseCode)
 
 	thenElseSeq = parallelInstrSeqs(thenCodeLabeled, elseCodeLabeled)
-	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, thenElseSeq, afterIf + ':')
+	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, thenElseSeq, afterIfInfo)
 
 	preserved = [env, cont]
 	return preserving(preserved, testCode, testGotosThenElseSeq)
@@ -147,6 +151,7 @@ def compSeq(seq, target, linkage):
 def compLambda(expr, target=val, linkage=nex):
 	funcEntry = makeLabel('ENTRY')
 	afterLambda = makeLabel('AFTER_LAMBDA')
+	afterLambdaInfo = labelInfo(afterLambda)
 
 	lambdaLink = afterLambda if linkage == nex else linkage
 	lambdaBody = compLambdaBody(expr, funcEntry)
@@ -156,7 +161,7 @@ def compLambda(expr, target=val, linkage=nex):
 
 	instrLinked = endWithLink(lambdaLink, instrSeq)
 	tackedOn = tackOnInstrSeq(instrLinked, lambdaBody)
-	appended = appendInstrSeqs(tackedOn, afterLambda + ':')
+	appended = appendInstrSeqs(tackedOn, afterLambdaInfo)
 
 	return appended
 
@@ -164,20 +169,12 @@ def compLambdaBody(expr, funcEntry):
 	params = lambdaParams(expr)
 	lispParams = schemify(params)
 
-	label = "%(funcEntry)s:" % locals() # might turn out redundant
+	label = labelInfo(funcEntry) 
 	assignFuncEnv = "env = COMPENVOBJ(func);"
 	parseParams = 'unev = parse("%(lispParams)s\\n");' % locals()
 	extendFuncEnv = "env = extendEnv(unev, arglist, env);" # %(params)s ?
 
-	def labelInstrs(label, *instrs):
-		totalInstr = label
-		for instr in instrs:
-			totalInstr += '\n\t' + instr
-		return totalInstr
-
-	# instr = label + '\n\t' + assignFuncEnv + '\n\t' + parseParams + '\n\t' + extendFuncEnv
-
-	instr = labelInstrs(label, assignFuncEnv, 
+	instr = joinInstrsNewlines(label, assignFuncEnv, 
 					parseParams, extendFuncEnv)
 
 	instrSeq = makeInstrSeq([env, func, arglist], 
@@ -249,9 +246,13 @@ def compFuncCall(target, linkage):
 	afterCall = makeLabel("AFTER_CALL")
 	compLink = afterCall if linkage == nex else linkage
 
+	primBranchInfo = labelInfo(primBranch)
+	compBranchInfo = labelInfo(compBranch)
+	afterCallInfo = labelInfo(afterCall)
+
 	test = "if (isPrimitive(func))"
 	gotoPrim = "goto %(primBranch)s;" % locals()
-	testGotoPrim = test + '\n\t' + gotoPrim
+	testGotoPrim = test + '\n' + gotoPrim
 	testPrimSeq = makeInstrSeq([func], [], 
 							[testGotoPrim])
 
@@ -262,12 +263,12 @@ def compFuncCall(target, linkage):
 	compLink = compFuncApp(target, compLink)
 	primLink = endWithLink(linkage, applyPrimSeq)
 
-	compLabeled = appendInstrSeqs(compBranch + ':', compLink)
-	primLabeled = appendInstrSeqs(primBranch + ':', primLink)
+	compLabeled = appendInstrSeqs(compBranchInfo, compLink)
+	primLabeled = appendInstrSeqs(primBranchInfo, primLink)
 	compPrimSeqs = parallelInstrSeqs(compLabeled, primLabeled)
 
 	return appendInstrSeqs(testPrimSeq, 
-				compPrimSeqs, afterCall + ':')
+				compPrimSeqs, afterCallInfo)
 
 
 def compFuncApp(target, linkage):
@@ -289,7 +290,6 @@ def compFuncApp(target, linkage):
 		assignVal = "val = COMPLABOBJ(func);"
 		gotoVal = "goto COMP_LABEL;"
 		assignTarget = "%(target)s = val;" % locals()
-		# FIGURE OUT COMPILED GOTO DISPATCH
 		gotoLinkage = "goto COMP_LABEL;" 
 
 		instr = joinInstrsNewlines(assignCont, assignVal,
