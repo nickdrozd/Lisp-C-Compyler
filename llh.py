@@ -29,7 +29,7 @@ def isQuote(exp):
 	return tag == QUOTE_KEY
 
 def quotedText(exp):
-	return exp[1:]
+	return exp[1]
 
 # assignment
 
@@ -55,7 +55,7 @@ def defVar(exp):
 def defVal(exp):
 	return exp[2]
 
-# conditional
+# booleans
 
 def isIf(exp):
 	tag = getTag(exp)
@@ -69,6 +69,18 @@ def ifThen(exp):
 
 def ifElse(exp):
 	return exp[3]
+
+def isOr(exp):
+	tag = getTag(exp)
+	return tag == OR_KEY
+
+def transformOr(expr):
+	if len(expr[1:]) == 0:
+		return 0
+	else:
+		first = expr[1]
+		rest = transformOr([OR_KEY] + expr[2:])
+		return [IF_KEY, first, 1, rest]
 
 # lambda abstraction
 
