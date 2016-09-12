@@ -1,8 +1,4 @@
-'''
-CLASSIFIERS
-'''
-
-from keywords import *
+''' LOW_LEVEL HELPERS '''
 
 # numbers
 
@@ -28,7 +24,7 @@ def hasForm(exp, form):
 # quotation
 
 def isQuote(exp):
-	return hasForm(exp, QUOTE_KEY)
+	return hasForm(exp, 'quote')
 
 def quotedText(exp):
 	return exp[1]
@@ -36,7 +32,7 @@ def quotedText(exp):
 # assignment
 
 def isAss(exp):
-	return hasForm(exp, ASS_KEY)
+	return hasForm(exp, 'set!')
 
 def assVar(exp):
 	return exp[1]
@@ -47,7 +43,7 @@ def assVal(exp):
 # definition
 
 def isDef(exp):
-	return hasForm(exp, DEF_KEY)
+	return hasForm(exp, 'define')
 
 def defVar(exp):
 	return exp[1]
@@ -58,7 +54,7 @@ def defVal(exp):
 # booleans
 
 def isIf(exp):
-	return hasForm(exp, IF_KEY)
+	return hasForm(exp, 'if')
 
 def ifTest(exp):
 	return exp[1]
@@ -70,20 +66,20 @@ def ifElse(exp):
 	return exp[3]
 
 def isOr(exp):
-	return hasForm(exp, OR_KEY)
+	return hasForm(exp, 'or')
 
 def transformOr(expr):
 	if len(expr[1:]) == 0:
 		return 0
 	else:
 		first = expr[1]
-		rest = transformOr([OR_KEY] + expr[2:])
-		return [IF_KEY, first, 1, rest]
+		rest = transformOr(['or'] + expr[2:])
+		return ['if', first, 1, rest]
 
 # lambda abstraction
 
 def isLambda(exp):
-	return hasForm(exp, LAMBDA_KEY)
+	return hasForm(exp, 'lambda')
 
 def lambdaParams(exp):
 	return exp[1]
@@ -103,7 +99,7 @@ def isLastExp(seq):
 	return len(seq[1:]) == 0
 
 def isBegin(exp):
-	return hasForm(exp, BEGIN_KEY)
+	return hasForm(exp, 'begin')
 
 # function application
 
