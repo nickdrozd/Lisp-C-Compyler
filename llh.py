@@ -22,11 +22,13 @@ def isVar(exp):
 def getTag(exp):
 	return exp[0]
 
+def hasForm(exp, form):
+	return getTag(exp) == form
+
 # quotation
 
 def isQuote(exp):
-	tag = getTag(exp)
-	return tag == QUOTE_KEY
+	return hasForm(exp, QUOTE_KEY)
 
 def quotedText(exp):
 	return exp[1]
@@ -34,8 +36,7 @@ def quotedText(exp):
 # assignment
 
 def isAss(exp):
-	tag = getTag(exp)
-	return tag == ASS_KEY
+	return hasForm(exp, ASS_KEY)
 
 def assVar(exp):
 	return exp[1]
@@ -46,8 +47,7 @@ def assVal(exp):
 # definition
 
 def isDef(exp):
-	tag = getTag(exp)
-	return tag == DEF_KEY
+	return hasForm(exp, DEF_KEY)
 
 def defVar(exp):
 	return exp[1]
@@ -58,8 +58,7 @@ def defVal(exp):
 # booleans
 
 def isIf(exp):
-	tag = getTag(exp)
-	return tag == IF_KEY
+	return hasForm(exp, IF_KEY)
 
 def ifTest(exp):
 	return exp[1]
@@ -71,8 +70,7 @@ def ifElse(exp):
 	return exp[3]
 
 def isOr(exp):
-	tag = getTag(exp)
-	return tag == OR_KEY
+	return hasForm(exp, OR_KEY)
 
 def transformOr(expr):
 	if len(expr[1:]) == 0:
@@ -85,8 +83,7 @@ def transformOr(expr):
 # lambda abstraction
 
 def isLambda(exp):
-	tag = getTag(exp)
-	return tag == LAMBDA_KEY
+	return hasForm(exp, LAMBDA_KEY)
 
 def lambdaParams(exp):
 	return exp[1]
@@ -106,8 +103,7 @@ def isLastExp(seq):
 	return len(seq[1:]) == 0
 
 def isBegin(exp):
-	tag = getTag(exp)
-	return tag == BEGIN_KEY
+	return hasForm(exp, BEGIN_KEY)
 
 # function application
 
