@@ -1,10 +1,12 @@
 # reserved words
-QUOTE_KEY = 'quote'
-BEGIN_KEY = 'begin'
+LAMBDA_KEY = 'lambda'
 DEF_KEY = 'define'
 ASS_KEY = 'set!'
 IF_KEY = 'if'
-LAMBDA_KEY = 'lambda'
+OR_KEY = 'or'
+QUOTE_KEY = 'quote'
+BEGIN_KEY = 'begin'
+
 
 # registers
 cont = 'cont'
