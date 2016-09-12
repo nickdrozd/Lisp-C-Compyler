@@ -3,9 +3,9 @@
 labels = []
 
 def labelInfo(label):
-	main_label = 'main_label = "%(label)s";' % locals()
-	print_info = "if (INFO) print_info();"
-	return '\t\t' + main_label + '\n\t\t' + print_info
+	print_info = 'if (INFO) print_info("%(label)s");' % locals()
+
+	return (label + ':' + '\n' + print_info)
 
 # label numbering
 
@@ -33,3 +33,4 @@ def makeLabel(name):
 
 # different numberings for different strings?
 # that would make the code easier to follow
+
