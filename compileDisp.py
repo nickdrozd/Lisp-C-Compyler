@@ -1,4 +1,5 @@
 # TODO: 
+# 	* BEGIN???
 #	* default args to comp funcs (target=val and linkage=nex) ???
 #	* add COMP_LABEL continue dispatch to ec_main.c
 #	* list of parse calls to constants, e.g
@@ -19,16 +20,19 @@ def compileDisp(expr, target=val, linkage=nex):
 		return compNum(expr, target, linkage)
 	elif isVar(expr):
 		return compVar(expr, target, linkage)
-	elif isQuote(expr):
-		return compQuote(expr, target, linkage)
-	elif isAss(expr):
-		return compAss(expr, target, linkage)
-	elif isDef(expr):
-		return compDef(expr, target, linkage)
-	elif isIf(expr):
-		return compIf(expr, target, linkage)
 	elif isLambda(expr):
 		return compLambda(expr, target, linkage)
+	elif isIf(expr):
+		return compIf(expr, target, linkage)
+	elif isDef(expr):
+		return compDef(expr, target, linkage)
+	elif isAss(expr):
+		return compAss(expr, target, linkage)
+	elif isQuote(expr):
+		return compQuote(expr, target, linkage)
+	elif isOr(expr):
+		expr = transformOr(expr)
+		return compIf(expr, target, linkage)
 	elif isBegin(expr):
 		return compBegin(expr, target, linkage)
 	else:
@@ -54,8 +58,6 @@ def endWithLink(linkage, instrSeq):
 	return preserving([cont], instrSeq, compLink(linkage))
 
 
-# expr reg isn't used. figure out how to get 
-# these expressions to Obj form
 
 def compNum(expr, target, linkage):
 	instr = "%(target)s = NUMOBJ(%(expr)s);" % locals()
@@ -106,7 +108,7 @@ def compDef(expr, target, linkage):
 def compIf(expr, target=val, linkage=nex):
 	trueBranch = makeLabel('TRUE_BRANCH')
 	falseBranch = makeLabel('FALSE_BRANCH')
-	afterIf = makeLabel('AFTER_IF') + ':'
+	afterIf = makeLabel('AFTER_IF')
 	thenLink = afterIf if linkage == nex else linkage
 
 	testCode = compileDisp(ifTest(expr), val, nex)
@@ -124,7 +126,7 @@ def compIf(expr, target=val, linkage=nex):
 	elseCodeLabeled = appendInstrSeqs(falseBranch + ':', elseCode)
 
 	thenElseSeq = parallelInstrSeqs(thenCodeLabeled, elseCodeLabeled)
-	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, thenElseSeq, afterIf)
+	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, thenElseSeq, afterIf + ':')
 
 	preserved = [env, cont]
 	return preserving(preserved, testCode, testGotosThenElseSeq)
@@ -137,7 +139,7 @@ def compSeq(seq, target, linkage):
 	else:
 		compFirst = compileDisp(first, target, nex)
 		rest = restExps(seq)
-		compRest = compileDisp(rest, target, linkage)
+		compRest = compSeq(rest, target, linkage)
 		preserved = [env, cont]
 		return preserving(preserved, compFirst, compRest)
 
@@ -149,7 +151,7 @@ def compLambda(expr, target=val, linkage=nex):
 	lambdaLink = afterLambda if linkage == nex else linkage
 	lambdaBody = compLambdaBody(expr, funcEntry)
 	
-	instr = "%(target)s = MKCOMP(%(funcEntry)s, env);" % locals()
+	instr = "%(target)s = COMPOBJ(_%(funcEntry)s, env);" % locals()
 	instrSeq = makeInstrSeq([env], [target], [instr])
 
 	instrLinked = endWithLink(lambdaLink, instrSeq)
@@ -163,7 +165,7 @@ def compLambdaBody(expr, funcEntry):
 	lispParams = schemify(params)
 
 	label = "%(funcEntry)s:" % locals() # might turn out redundant
-	assignFuncEnv = "env = GETCOMPENV(func);"
+	assignFuncEnv = "env = COMPENVOBJ(func);"
 	parseParams = 'unev = parse("%(lispParams)s\\n");' % locals()
 	extendFuncEnv = "env = extendEnv(unev, arglist, env);" # %(params)s ?
 
@@ -204,7 +206,7 @@ def compApp(expr, target=val, linkage=nex):
 				funcCode, arglPresFunc)
 
 def constructArglist(argCodes):
-	# argCodes = reversed(argCodes)
+	argCodes = argCodes[::-1]
 
 	if len(argCodes) == 0:
 		instr = "arglist = NULLOBJ;"
@@ -213,11 +215,11 @@ def constructArglist(argCodes):
 	instr = "arglist = LISTOBJ(makeList(val, NULL));"
 	instrSeq = makeInstrSeq([val], [arglist], 
 										[instr])
-	lastArg = argCodes[-1]
+	lastArg = argCodes[0]
 	codeToGetLastArg = appendInstrSeqs(lastArg, 
 										instrSeq)
 
-	restArgs = argCodes[:-1]
+	restArgs = argCodes[1:]
 	if len(restArgs) == 0:
 		return codeToGetLastArg
 	else:
@@ -273,17 +275,18 @@ def compFuncApp(target, linkage):
 	retLink = linkage == ret
 
 	if valTarg and not retLink:
-		assignCont = "cont = LABELOBJ(%(linkage)s);" % locals()
+		assignCont = "cont = LABELOBJ(_%(linkage)s);" % locals()
 		assignVal = "val = COMPLABOBJ(func);"
-		instr = assignCont + '\n' + assignVal
+		gotoVal = "goto COMP_LABEL;"
+		instr = joinInstrsNewlines(assignCont,
+					assignVal, gotoVal)
 		return makeInstrSeq([func], allRegs, [instr])
 
 	elif not valTarg and not retLink:
 		funcReturn = makeLabel('FUNC_RETURN')
 
-		assignCont = "cont = LABELOBJ(%(funcReturn)s)" % locals()
+		assignCont = "cont = LABELOBJ(_%(funcReturn)s)" % locals()
 		assignVal = "val = COMPLABOBJ(func);"
-		# missing a goto?
 		gotoVal = "goto COMP_LABEL;"
 		assignTarget = "%(target)s = val;" % locals()
 		# FIGURE OUT COMPILED GOTO DISPATCH
@@ -303,10 +306,6 @@ def compFuncApp(target, linkage):
 
 	else:
 		Exception('bad function call', 'compFuncApp')
-
-
-
-
 
 
 
