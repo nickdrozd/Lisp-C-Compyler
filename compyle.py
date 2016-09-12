@@ -9,30 +9,41 @@ from library import library
 def compyle(exprSeq):
 	print('\n')
 
-	# print("COMPILED_CODE:")
+	print('#define COMPILED_CODE_BODY \\')
 	for expr in exprSeq:
 		parsed = parse(expr)
 		compiled = compileDisp(parsed)
 		code = statements(compiled)
 
 		for line in code:
-			print('\t\t' + line)
+			print(line)
 	print('goto DONE;')
 
-	# print('// compiler labels')
+	# labelsLen = len(labels)
+	# print('#define ALL_COMPILED_LABELS \\')
 	# for label in labels:
-	# 	print('\t_' + label + ',')
+	# 	if labels.index(label) == labelsLen - 1:
+	# 		print('_' + label)
+	# 	else:
+	# 		print('_' + label + ',' + ' \\')
+
+	# for label in labels:
+	# 	print('\t_' + label + ', ')
+
+	# for label in labels:
+	# 	print('if (GETLABEL(REG) == _' + label + ')' + ' \\')
+	# 	print('goto ' + label + ';' + ' \\')
 
 	# print("\n\nCOMP_LABEL:\n")
 	# for label in labels:
-	# 	print('\tif (GETLABEL(val) == _' + label + ')')
-	# 	print('\t\tgoto ' + label + ';')
+	# 	print('\t\tif (GETLABEL(val) == _' + label + ')')
+	# 	print('\t\t\tgoto ' + label + ';')
 
 	# print("\n\nCONTINUE:\n")
 	# print('// compiler labels')
 	# for label in labels:
-	# 	print('\tif (GETLABEL(cont) == _' + label + ')')
-	# 	print('\t\tgoto ' + label + ';')
+	# 	print('\t\tif (GETLABEL(cont) == _' + label + ')')
+	# 	print('\t\t\tgoto ' + label + ';')
 
 	# print('\n\nprint_label\n')
 	# for label in labels:
@@ -45,29 +56,5 @@ def compyle(exprSeq):
 
 compyle(library)
 
-exprSeq = [
-# 	'(define x (quote + y z))', 
-# 	'(define a 1)',
-# 	'(define b 0)',
-# 	'(define c (if (if p q r) a b))',
-# 	'(define f (lambda (x) 5))'
-	'(define factorial (lambda (n) (if (= n 1) 1 (* (factorial (- n 1) n)))))'
-# 	'(define fib (lambda (n) (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2))))))'
-]
 
-# exprSeq = [
-# '(define add1 (lambda (n) (+ n 1)))',
-# '(add1 (add1 5))'
-# ]
 
-# compyle(exprSeq)
-
-# from compileDisp import compSeq
-# from library import *
-
-# x = [parse(iterative_fibonacci)]
-
-# s = statements(compSeq(x, val, nex))
-
-# for i in s:
-# 	print(i)
