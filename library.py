@@ -1,5 +1,3 @@
-from keywords import *
-
 # arithmetic operations
 
 zero_ = (
@@ -20,48 +18,42 @@ sub1 = (
 			'(- n 1)))'
 )
 
-three_var_test = (
-	'(define three_var_test '
-		'(lambda (x y z)'
-			'(* x (- y z))))'
-)
-
 triangular = (
-	'(define triangular '
+	'(define recursive_triangular_compiled '
 		'(lambda (n) '
 			'(if (zero? n) '
 				'0 '
-				'(+ n (triangular (sub1 n))))))'
+				'(+ n (recursive_triangular_compiled (sub1 n))))))'
 )
 
 tetrahedral = (
-	'(define tetrahedral '
+	'(define recursive_tetrahedral_compiled '
 		'(lambda (n) '
 			'(if (zero? n) '
 				'0 '
-				'(+ (triangular n) '
-					'(tetrahedral (sub1 n))))))'
+				'(+ (recursive_triangular_compiled n) '
+					'(recursive_tetrahedral_compiled (sub1 n))))))'
 )
 
 supertetrahedral = (
-	'(define supertetrahedral '
+	'(define recursive_supertetrahedral_compiled '
 		'(lambda (n) '
 			'(if (zero? n) '
 				'0 '
-				'(+ (tetrahedral n) '
-					'(supertetrahedral (sub1 n))))))'
+				'(+ (recursive_tetrahedral_compiled n) '
+					'(recursive_supertetrahedral_compiled (sub1 n))))))'
 )
 
 recursive_factorial = (
-	'(define recursive_factorial '
+	'(define recursive_factorial_compiled '
 		'(lambda (n) '
 			'(if (zero? n) '
 				'1 '
-				'(* n (recursive_factorial (sub1 n))))))'
+				'(* n (recursive_factorial_compiled (sub1 n))))))'
 )
 
 iterative_factorial = (
-	'(define iterative_factorial '
+	'(define iterative_factorial_compiled '
 		'(lambda (n) '
 			'(define loop '
 				'(lambda (count total) '
@@ -73,17 +65,17 @@ iterative_factorial = (
 )
 
 recursive_fibonacci = (
-	'(define recursive_fibonacci '
+	'(define recursive_fibonacci_compiled '
 		'(lambda (n) '
 			'(if (or (= n 0) '
 					'(= n 1)) '
 				'n '
-				'(+ (recursive_fibonacci (- n 1)) '
-					'(recursive_fibonacci (- n 2))))))'
+				'(+ (recursive_fibonacci_compiled (- n 1)) '
+					'(recursive_fibonacci_compiled (- n 2))))))'
 )
 
 iterative_fibonacci = (
-	'(define iterative_fibonacci '
+	'(define iterative_fibonacci_compiled '
 		'(lambda (n) '
 			'(define loop '
 				'(lambda (count a b) '
@@ -93,6 +85,14 @@ iterative_fibonacci = (
 							'b '
 							'(+ a b))))) '
 			'(loop n 0 1)))'
+)
+
+factorial = (
+	'(define factorial iterative_factorial_compiled)'
+)
+
+fibonacci = (
+	'(define fibonacci iterative_fibonacci_compiled)'
 )
 
 # list operations
@@ -134,10 +134,10 @@ length = (
 
 arithLib = [
 	zero_, add1, sub1,
-	three_var_test,
 	triangular, tetrahedral, supertetrahedral, 
 	recursive_factorial, iterative_factorial, 
-	recursive_fibonacci, iterative_fibonacci
+	recursive_fibonacci, iterative_fibonacci,
+	factorial, fibonacci
 ]
 
 listLib = [cons, car, cdr, nil, length]
