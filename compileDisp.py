@@ -120,8 +120,7 @@ def compIf(expr, target=val, linkage=nex):
 	isTrueInstr = "if (isTrue(val)) "
 	gotoTrueInstr = "goto %(trueBranch)s;" % locals()
 	gotoFalseInstr = "goto %(falseBranch)s;" % locals()
-	testGotoInstr = joinInstrsNewlines(isTrueInstr, 
-						gotoTrueInstr, gotoFalseInstr)
+	testGotoInstr = isTrueInstr + gotoTrueInstr + '\n' + gotoFalseInstr
 	testGotoSeq = makeInstrSeq([val], [], [testGotoInstr])
 
 	thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
@@ -250,7 +249,7 @@ def compFuncCall(target, linkage):
 
 	test = "if (isPrimitive(func))"
 	gotoPrim = "goto %(primBranch)s;" % locals()
-	testGotoPrim = test + '\n' + gotoPrim
+	testGotoPrim = test + gotoPrim
 	testPrimSeq = makeInstrSeq([func], [], 
 							[testGotoPrim])
 
