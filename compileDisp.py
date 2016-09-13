@@ -247,7 +247,7 @@ def compFuncCall(target, linkage):
 	compBranchInfo = labelInfo(compBranch)
 	afterCallInfo = labelInfo(afterCall)
 
-	test = "if (isPrimitive(func))"
+	test = "if (isPrimitive(func)) "
 	gotoPrim = "goto %(primBranch)s;" % locals()
 	testGotoPrim = test + gotoPrim
 	testPrimSeq = makeInstrSeq([func], [], 
