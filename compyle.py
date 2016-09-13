@@ -21,14 +21,16 @@ from library import library
 def compyle(exprSeq):
 	print('\n')
 
+	print('#define COMPILED_CODE_BODY \\')
 	for expr in exprSeq:
 		parsed = parse(expr)
 		compiled = compileDisp(parsed)
 		code = statements(compiled)
 
 		for line in code:
-			print(line)
+			print(line.replace(';','; \\').replace(':',': \\'))
 
+	print('goto DONE;')
 	print('\n')
 
 compyle(library)
