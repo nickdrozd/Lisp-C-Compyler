@@ -68,10 +68,7 @@ def compQuote(expr, target, linkage):
 	text = quotedText(expr)
 	lispText = schemify(text)
 
-	parseText = 'unev = parse("%(lispText)s\\n");' % locals()
-	assignText = "%(target)s = unev;" % locals()
-
-	instr = parseText + '\n' + assignText
+	instr = '%(target)s = parse("%(lispText)s\\n");' % locals()
 	instrSeq = makeInstrSeq([], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
