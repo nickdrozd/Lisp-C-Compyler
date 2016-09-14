@@ -286,13 +286,14 @@ def compFuncApp(target, linkage):
 		assignCont = "cont = LABELOBJ(_%(funcReturn)s)" % locals()
 		assignVal = "val = COMPLABOBJ(func);"
 		gotoVal = "goto COMP_LABEL;"
+		# FUNC_RETURN_#:
 		assignTarget = "%(target)s = val;" % locals()
 		gotoLinkage = "goto COMP_LABEL;" 
 
 		instr = joinInstrsNewlines(assignCont, assignVal,
 			gotoVal, funcReturn, assignTarget, gotoLinkage)
 
-		return makeInstrSeq([func], allRegs, instr)
+		return makeInstrSeq([func], allRegs, [instr])
 
 	elif valTarg and retLink:
 		assignVal = "val = COMPLABOBJ(func);"
