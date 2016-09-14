@@ -8,3 +8,5 @@ compyle.py contains the main function. See there for use details.
 TODO:
 * Documentation!
 * Figure out how to file I/O (especially O)
+* Make style more "pythonic", especially converting recursion to iteration
+* rework instruction sequences so that information about registers needed and modified can be extracted from the instruction strings themselves. that would make comipledDisp a lot cleaner (but would it adversely affect adaptability?). 
