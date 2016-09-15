@@ -3,7 +3,7 @@
 labels = []
 
 def labelInfo(label):
-	print_info = 'if (INFO) print_info("%(label)s");' % locals()
+	print_info = 'print_info("%(label)s");' % locals()
 
 	return (label + ':' + ' ' + print_info)
 
