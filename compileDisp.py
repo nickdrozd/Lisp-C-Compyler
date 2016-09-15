@@ -1,12 +1,13 @@
-# TODO: 
-# 	* BEGIN???
-#	* default args to comp funcs (target=val and linkage=nex) ???
-#	* add COMP_LABEL continue dispatch to ec_main.c
-#	* list of parse calls to constants, e.g
-#		* Obj obj4 = parse("n\n");
-#		* use somethine like makeLabel
+'''
+TODO: 
+	* BEGIN???
+	* default args to comp funcs (target=val and linkage=nex) ???
+	* add COMP_LABEL continue dispatch to ec_main.c
+	* list of parse calls to constants, e.g
+		* Obj obj4 = parse("n\n");
+		* use somethine like makeLabel
+'''
 
-# TODO: figure out which funcs are needed
 from keywords import *
 from instructions import *
 from labels import makeLabel
@@ -113,21 +114,19 @@ def compIf(expr, target=val, linkage=nex):
 	afterIfInfo = labelInfo(afterIf)
 
 	testCode = compileDisp(ifTest(expr), val, nex)
-	thenCode = compileDisp(ifThen(expr), target, thenLink)
-	# fallthrough after false branch?
-	elseCode = compileDisp(ifElse(expr), target, linkage)
+	thenCode = compileDisp(ifThen(expr), target, linkage)
+	elseCode = compileDisp(ifElse(expr), target, thenLink)
 
 	isTrueInstr = "if (isTrue(val)) "
 	gotoTrueInstr = "goto %(trueBranch)s;" % locals()
-	gotoFalseInstr = "goto %(falseBranch)s;" % locals()
-	instrList = [isTrueInstr, gotoTrueInstr, gotoFalseInstr]
+	instrList = [isTrueInstr + gotoTrueInstr]
 	testGotoSeq = makeInstrSeq([val], [], instrList)
 
 	thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
 	elseCodeLabeled = appendInstrSeqs(falseBranchInfo, elseCode)
 
-	thenElseSeq = parallelInstrSeqs(thenCodeLabeled, elseCodeLabeled)
-	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, thenElseSeq, afterIfInfo)
+	elseThenSeq = parallelInstrSeqs(elseCodeLabeled, thenCodeLabeled)
+	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, elseThenSeq, afterIfInfo)
 
 	preserved = [env, cont]
 	return preserving(preserved, testCode, testGotosThenElseSeq)
@@ -247,8 +246,7 @@ def compFuncCall(target, linkage):
 
 	test = "if (isPrimitive(func)) "
 	gotoPrim = "goto %(primBranch)s;" % locals()
-	# testGotoPrim = test + gotoPrim
-	instrList = [test, gotoPrim]
+	instrList = [test + gotoPrim]
 	testPrimSeq = makeInstrSeq([func], [], instrList)
 
 	applyPrim = "%(target)s = applyPrimitive(func, arglist);" % locals()
@@ -274,8 +272,6 @@ def compFuncApp(target, linkage):
 		assignCont = "cont = LABELOBJ(_%(linkage)s);" % locals()
 		assignVal = "val = COMPLABOBJ(func);"
 		gotoVal = "goto COMP_LABEL;"
-		# instr = joinInstrsNewlines(assignCont,
-		# 			assignVal, gotoVal)
 		instrList = [assignCont, assignVal, gotoVal]
 		return makeInstrSeq([func], allRegs, instrList)
 
@@ -289,9 +285,6 @@ def compFuncApp(target, linkage):
 		assignTarget = "%(target)s = val;" % locals()
 		gotoLinkage = "goto COMP_LABEL;" 
 
-		# instr = joinInstrsNewlines(assignCont, assignVal,
-		# 	gotoVal, funcReturn, assignTarget, gotoLinkage)
-
 		instrList = [assignCont, assignVal, gotoVal, 
 				funcReturn, assignTarget, gotoLinkage]
 
@@ -301,7 +294,6 @@ def compFuncApp(target, linkage):
 		assignVal = "val = COMPLABOBJ(func);"
 		gotoVal = "goto COMP_LABEL;"
 
-		# instr = assignVal + '\n' + gotoVal
 		instrList = [assignVal, gotoVal]
 		return makeInstrSeq([func, cont], allRegs, instrList)
 
