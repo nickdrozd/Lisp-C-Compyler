@@ -206,7 +206,7 @@ def constructArglist(argCodes):
 		instr = "arglist = NULLOBJ;"
 		return makeInstrSeq([], [arglist], [instr])
 	# else:
-	instr = "arglist = LISTOBJ(makeList(val, NULL));"
+	instr = "arglist = CONS(val, NULLOBJ);"
 	instrSeq = makeInstrSeq([val], [arglist], 
 										[instr])
 	lastArg = argCodes[0]
@@ -223,7 +223,7 @@ def constructArglist(argCodes):
 
 def codeToGetRestArgs(argCodes):
 	nextArg = argCodes[0]
-	instr = "arglist = LISTOBJ(makeList(val, GETLIST(arglist)));"
+	instr = "arglist = CONS(val, arglist);"
 	instrSeq = makeInstrSeq([val, arglist], 
 					[arglist], [instr])
 	codeForNextArg = preserving([arglist], 
