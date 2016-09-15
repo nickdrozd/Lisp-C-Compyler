@@ -120,8 +120,8 @@ def compIf(expr, target=val, linkage=nex):
 	isTrueInstr = "if (isTrue(val)) "
 	gotoTrueInstr = "goto %(trueBranch)s;" % locals()
 	gotoFalseInstr = "goto %(falseBranch)s;" % locals()
-	testGotoInstr = isTrueInstr + gotoTrueInstr + '\n' + gotoFalseInstr
-	testGotoSeq = makeInstrSeq([val], [], [testGotoInstr])
+	instrList = [isTrueInstr, gotoTrueInstr, gotoFalseInstr]
+	testGotoSeq = makeInstrSeq([val], [], instrList)
 
 	thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
 	elseCodeLabeled = appendInstrSeqs(falseBranchInfo, elseCode)
@@ -166,16 +166,16 @@ def compLambdaBody(expr, funcEntry):
 	params = lambdaParams(expr)
 	lispParams = schemify(params)
 
-	label = labelInfo(funcEntry) 
+	funcEntryInfo = labelInfo(funcEntry) 
 	assignFuncEnv = "env = COMPENVOBJ(func);"
 	parseParams = 'unev = parse("%(lispParams)s\\n");' % locals()
 	extendFuncEnv = "env = extendEnv(unev, arglist, env);" # %(params)s ?
 
-	instr = joinInstrsNewlines(label, assignFuncEnv, 
-					parseParams, extendFuncEnv)
+	instrList = [funcEntryInfo, assignFuncEnv, 
+					parseParams, extendFuncEnv]
 
 	instrSeq = makeInstrSeq([env, func, arglist], 
-								[env], [instr])
+				[env], instrList)
 	bodySeq = compSeq(lambdaBody(expr), val, ret)
 	appended = appendInstrSeqs(instrSeq, bodySeq)
 
@@ -207,11 +207,9 @@ def constructArglist(argCodes):
 		return makeInstrSeq([], [arglist], [instr])
 	# else:
 	instr = "arglist = CONS(val, NULLOBJ);"
-	instrSeq = makeInstrSeq([val], [arglist], 
-										[instr])
+	instrSeq = makeInstrSeq([val], [arglist], [instr])
 	lastArg = argCodes[0]
-	codeToGetLastArg = appendInstrSeqs(lastArg, 
-										instrSeq)
+	codeToGetLastArg = appendInstrSeqs(lastArg, instrSeq)
 
 	restArgs = argCodes[1:]
 	if len(restArgs) == 0:
@@ -249,9 +247,9 @@ def compFuncCall(target, linkage):
 
 	test = "if (isPrimitive(func)) "
 	gotoPrim = "goto %(primBranch)s;" % locals()
-	testGotoPrim = test + gotoPrim
-	testPrimSeq = makeInstrSeq([func], [], 
-							[testGotoPrim])
+	# testGotoPrim = test + gotoPrim
+	instrList = [test, gotoPrim]
+	testPrimSeq = makeInstrSeq([func], [], instrList)
 
 	applyPrim = "%(target)s = applyPrimitive(func, arglist);" % locals()
 	applyPrimSeq = makeInstrSeq([func, arglist],
@@ -276,9 +274,10 @@ def compFuncApp(target, linkage):
 		assignCont = "cont = LABELOBJ(_%(linkage)s);" % locals()
 		assignVal = "val = COMPLABOBJ(func);"
 		gotoVal = "goto COMP_LABEL;"
-		instr = joinInstrsNewlines(assignCont,
-					assignVal, gotoVal)
-		return makeInstrSeq([func], allRegs, [instr])
+		# instr = joinInstrsNewlines(assignCont,
+		# 			assignVal, gotoVal)
+		instrList = [assignCont, assignVal, gotoVal]
+		return makeInstrSeq([func], allRegs, instrList)
 
 	elif not valTarg and not retLink:
 		funcReturn = makeLabel('FUNC_RETURN')
@@ -290,17 +289,21 @@ def compFuncApp(target, linkage):
 		assignTarget = "%(target)s = val;" % locals()
 		gotoLinkage = "goto COMP_LABEL;" 
 
-		instr = joinInstrsNewlines(assignCont, assignVal,
-			gotoVal, funcReturn, assignTarget, gotoLinkage)
+		# instr = joinInstrsNewlines(assignCont, assignVal,
+		# 	gotoVal, funcReturn, assignTarget, gotoLinkage)
 
-		return makeInstrSeq([func], allRegs, [instr])
+		instrList = [assignCont, assignVal, gotoVal, 
+				funcReturn, assignTarget, gotoLinkage]
+
+		return makeInstrSeq([func], allRegs, instrList)
 
 	elif valTarg and retLink:
 		assignVal = "val = COMPLABOBJ(func);"
 		gotoVal = "goto COMP_LABEL;"
 
-		instr = assignVal + '\n' + gotoVal
-		return makeInstrSeq([func, cont], allRegs, [instr])
+		# instr = assignVal + '\n' + gotoVal
+		instrList = [assignVal, gotoVal]
+		return makeInstrSeq([func, cont], allRegs, instrList)
 
 	else:
 		Exception('bad function call', 'compFuncApp')
