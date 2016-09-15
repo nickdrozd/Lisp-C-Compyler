@@ -5,7 +5,7 @@ labels = []
 def labelInfo(label):
 	print_info = 'if (INFO) print_info("%(label)s");' % locals()
 
-	return (label + ':' + '\n' + print_info)
+	return (label + ':' + ' ' + print_info)
 
 # label numbering
 
