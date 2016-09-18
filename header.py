@@ -63,12 +63,21 @@ def makeLispincHeader(exprSeq):
 	comp_code.write('\n\n')
 
 	comp_code.write('#define ALL_COMPILED_LABELS \\' + '\n')
+	# i = 0
 	for label in labels:
-		lastLabel = isLastLabel(label)
-		listedLabel = (
-			'_' + label + 
-			('' if lastLabel else ', \\' + '\n')
-		)
+		undscrLabel = '_' + label
+		if isLastLabel(label):
+			listedLabel = undscrLabel
+		else:
+			listedLabel = undscrLabel + ', \\' + '\n'
+			# commaLabel = undscrLabel + ', '
+			# if i < 2:
+			# 	listedLabel = commaLabel
+			# 	i += 1
+			# else:
+			# 	listedLabel = commaLabel + '\\' + '\n'
+			# 	i = 0 
+
 		comp_code.write(listedLabel)
 
 	comp_code.write('\n\n' + '#endif' + '\n')
