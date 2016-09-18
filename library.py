@@ -161,4 +161,4 @@ arithLib = [
 
 
 
-library = arithLib + listLib
+library = listLib + arithLib
