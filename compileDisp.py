@@ -279,7 +279,7 @@ def compFuncApp(target, linkage):
 		gotoVal = "goto COMP_LABEL;"
 		funcReturnInfo = labelInfo(funcReturn)
 		assignTarget = "%(target)s = val;" % locals()
-		gotoLinkage = "goto COMP_LABEL;" 
+		gotoLinkage = "goto %(linkage)s;" % locals() 
 
 		instrList = [assignCont, assignVal, gotoVal, 
 				funcReturnInfo, assignTarget, gotoLinkage]
