@@ -42,7 +42,7 @@ def compileDisp(expr, target=val, linkage=nex):
 
 
 
-def compLink(linkage):
+def compileLinkage(linkage):
 	if linkage == ret:
 		return makeInstrSeq([cont], [], ['goto CONTINUE;'])
 	elif linkage == nex:
@@ -52,7 +52,7 @@ def compLink(linkage):
 
 
 def endWithLink(linkage, instrSeq):
-	return preserving([cont], instrSeq, compLink(linkage))
+	return preserving([cont], instrSeq, compileLinkage(linkage))
 
 
 
@@ -231,66 +231,97 @@ def codeToGetRestArgs(argCodes):
 
 
 def compFuncCall(target, linkage):
-	primBranch = makeLabel("PRIMITIVE")
-	compBranch = makeLabel("COMPILED")
+	primitiveBranch = makeLabel("PRIMITIVE")
+	compoundBranch = makeLabel("COMPOUND")
+	compiledBranch = makeLabel("COMPILED")
 	afterCall = makeLabel("AFTER_CALL")
-	compLink = afterCall if linkage == nex else linkage
 
-	primBranchInfo = labelInfo(primBranch)
-	compBranchInfo = labelInfo(compBranch)
+	endLabel = afterCall if linkage == nex else linkage
+
+	primitiveBranchInfo = labelInfo(primitiveBranch)
+	compoundBranchInfo = labelInfo(compoundBranch)
+	compiledBranchInfo = labelInfo(compiledBranch)
 	afterCallInfo = labelInfo(afterCall)
 
-	test = "if (isPrimitive(func)) "
-	gotoPrim = "goto %(primBranch)s;" % locals()
-	instrList = [test + gotoPrim]
-	testPrimSeq = makeInstrSeq([func], [], instrList)
+	def makeTestGotoSeq(testString, label):
+		test = "if (%(testString)s(func)) " % locals()
+		goto = "goto %(label)s;" % locals()
+		instrList = [test + goto]
+		return makeInstrSeq([func], [], instrList)
 
-	applyPrim = "%(target)s = applyPrimitive(func, arglist);" % locals()
-	applyPrimSeq = makeInstrSeq([func, arglist],
-					[target], [applyPrim])
-	
-	compLink = compFuncApp(target, compLink)
-	primLink = endWithLink(linkage, applyPrimSeq)
+	testPrimitiveSeq = makeTestGotoSeq('isPrimitive', primitiveBranch)
+	testCompoundSeq = makeTestGotoSeq('isCompound', compoundBranch)
+	testSeqs = appendInstrSeqs(testPrimitiveSeq, testCompoundSeq)
 
-	compLabeled = appendInstrSeqs(compBranchInfo, compLink)
-	primLabeled = appendInstrSeqs(primBranchInfo, primLink)
-	compPrimSeqs = parallelInstrSeqs(compLabeled, primLabeled)
+	applyPrimitive = "%(target)s = applyPrimitive(func, arglist);" % locals()
+	applyPrimitiveSeq = makeInstrSeq([func, arglist], 
+					[target], [applyPrimitive])
 
-	return appendInstrSeqs(testPrimSeq, 
-				compPrimSeqs, afterCallInfo)
+	# calling compFuncApp twice generates two different endLabels
+	compoundLink = compFuncApp(target, endLabel, 'compound')
+	compiledLink = compFuncApp(target, endLabel, 'compiled') 
+
+	primitiveLink = endWithLink(linkage, applyPrimitiveSeq)
+
+	compiledLabeled = appendInstrSeqs(compiledBranchInfo, compiledLink)
+	compoundLabeled = appendInstrSeqs(compoundBranchInfo, compoundLink)
+	primitiveLabeled = appendInstrSeqs(primitiveBranchInfo, primitiveLink)
+
+	compoundPrimPara = parallelInstrSeqs(compoundLabeled, primitiveLabeled)
+	compiledPara = parallelInstrSeqs(compiledLabeled, compoundPrimPara)
+
+	return appendInstrSeqs(testSeqs, compiledPara, afterCallInfo)
 
 
-def compFuncApp(target, linkage):
+# funcType as string: 'compiled' or 'compound'
+def compFuncApp(target, linkage, funcType):
 	valTarg = target == val
 	retLink = linkage == ret
 
+	assignVal = "val = COMPLABOBJ(func);"
+	gotoVal = "goto COMP_LABEL;"
+	compiledList = [assignVal, gotoVal]
+
+	saveCont = "save(cont);"
+	gotoCompound = "goto APPLY_COMPOUND;"
+	compoundList = [saveCont, gotoCompound]
+
+	isCompiled = funcType == 'compiled'
+
+	# typical function call, eg (f 5)
 	if valTarg and not retLink:
+		# common instructions
 		assignCont = "cont = LABELOBJ(_%(linkage)s);" % locals()
-		assignVal = "val = COMPLABOBJ(func);"
-		gotoVal = "goto COMP_LABEL;"
-		instrList = [assignCont, assignVal, gotoVal]
+
+		funcList = compiledList if isCompiled else compoundList
+		instrList = [assignCont] + funcList
+			
 		return makeInstrSeq([func], allRegs, instrList)
 
+
+	# target is func, eg in ((f 4) 5)
 	elif not valTarg and not retLink:
 		funcReturn = makeLabel('FUNC_RETURN')
 
 		assignCont = "cont = LABELOBJ(_%(funcReturn)s);" % locals()
-		assignVal = "val = COMPLABOBJ(func);"
-		gotoVal = "goto COMP_LABEL;"
+
+		funcList = compiledList if isCompiled else compoundList
+
 		funcReturnInfo = labelInfo(funcReturn)
 		assignTarget = "%(target)s = val;" % locals()
-		gotoLinkage = "goto %(linkage)s;" % locals() 
+		gotoLinkage = "goto %(linkage)s;" % locals()
 
-		instrList = [assignCont, assignVal, gotoVal, 
-				funcReturnInfo, assignTarget, gotoLinkage]
+		returnList = [funcReturnInfo, assignTarget, gotoLinkage]
+
+		instrList = [assignCont] + funcList + returnList
 
 		return makeInstrSeq([func], allRegs, instrList)
 
-	elif valTarg and retLink:
-		assignVal = "val = COMPLABOBJ(func);"
-		gotoVal = "goto COMP_LABEL;"
 
-		instrList = [assignVal, gotoVal]
+	# this gets called, but I don't understand when
+	elif valTarg and retLink:
+		instrList = compiledList if isCompiled else compoundList
+
 		return makeInstrSeq([func, cont], allRegs, instrList)
 
 	else:
