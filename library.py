@@ -35,11 +35,22 @@ append = '''
 			(append (cdr list1) list2))))
 '''
 
+reverse = '''
+(define (reverse items)
+	(define (loop result rest)
+		(if (null? rest)
+			result
+			(loop (cons (car rest)
+					result)
+				(cdr rest))))
+	(loop nil items))
+'''
+
 map_ = '''
 (define (map func items)
 	(define (loop result rest)
 		(if (null? rest)
-			result
+			(reverse result)
 			(loop (cons (func (car rest)) 
 					result)
 				(cdr rest))))
@@ -60,7 +71,7 @@ foldLeft = '''
 
 listLib = [
 nil, list_, length, 
-listRef, append, 
+listRef, append, reverse, 
 map_, foldLeft, 
 ]
 
