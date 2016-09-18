@@ -1,11 +1,7 @@
 '''
-TODO: 
-	* BEGIN???
-	* default args to comp funcs (target=val and linkage=nex) ???
-	* add COMP_LABEL continue dispatch to ec_main.c
-	* list of parse calls to constants, e.g
-		* Obj obj4 = parse("n\n");
-		* use somethine like makeLabel
+TODO:
+	* documentation
+	* generic instruction generator?
 '''
 
 from keywords import *
@@ -281,12 +277,12 @@ def compFuncApp(target, linkage):
 		assignCont = "cont = LABELOBJ(_%(funcReturn)s)" % locals()
 		assignVal = "val = COMPLABOBJ(func);"
 		gotoVal = "goto COMP_LABEL;"
-		# FUNC_RETURN_#:
+		funcReturnInfo = labelInfo(funcReturn)
 		assignTarget = "%(target)s = val;" % locals()
 		gotoLinkage = "goto COMP_LABEL;" 
 
 		instrList = [assignCont, assignVal, gotoVal, 
-				funcReturn, assignTarget, gotoLinkage]
+				funcReturnInfo, assignTarget, gotoLinkage]
 
 		return makeInstrSeq([func], allRegs, instrList)
 
