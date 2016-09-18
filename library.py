@@ -10,11 +10,15 @@ list_ = '''
 '''
 
 length = '''
-(define (length s) 
-		(if (null? s) 
-			0 
-			(add1 (length (cdr s)))))
+(define (length s)
+	(define (loop total rest)
+		(if (null? rest)
+			total
+			(loop (add1 total)
+				(cdr rest))))
+	(loop 0 s))
 '''
+
 
 listRef = '''
 (define (list-ref items n)
@@ -33,25 +37,31 @@ append = '''
 
 map_ = '''
 (define (map func items)
-	(if (null? items)
-		nil
-		(cons (func (car items))
-			(map func (cdr items)))))
+	(define (loop result rest)
+		(if (null? rest)
+			result
+			(loop (cons (func (car rest)) 
+					result)
+				(cdr rest))))
+	(loop nil items))
 '''
 
-foldRight = '''
-(define (fold-right comb null seq)
-	(if (null? seq)
-		null
-		(comb (car seq)
-			(fold-right comb null (cdr seq)))))
+foldLeft = '''
+(define (fold-left comb null seq)
+	(define (loop result rest)
+		(if (null? rest)
+			result
+			(loop (comb result
+					(car rest))
+				(cdr rest))))
+	(loop null seq))
 '''
 
 
 listLib = [
-nil, list_, length,
+nil, list_, length, 
 listRef, append, 
-map_, foldRight, 
+map_, foldLeft, 
 ]
 
 # arithmetic operations
@@ -59,13 +69,13 @@ map_, foldRight,
 add = '''
 (define + 
 	(lambda nums
-		(fold-right __+__ 0 nums)))
+		(fold-left __+__ 0 nums)))
 '''
 
 mul = '''
 (define * 
 	(lambda nums
-		(fold-right __*__ 1 nums)))
+		(fold-left __*__ 1 nums)))
 '''
 
 recursive_factorial = '''
