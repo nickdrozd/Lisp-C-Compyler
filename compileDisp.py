@@ -22,6 +22,8 @@ def compileDisp(expr, target=val, linkage=nex):
 	elif isIf(expr):
 		return compIf(expr, target, linkage)
 	elif isDef(expr):
+		if isSugarDef(expr):
+			expr = transformSugarDef(expr)
 		return compDef(expr, target, linkage)
 	elif isAss(expr):
 		return compAss(expr, target, linkage)

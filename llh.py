@@ -1,4 +1,4 @@
-''' LOW_LEVEL HELPERS '''
+''' LOW-LEVEL HELPERS '''
 
 # numbers
 
@@ -44,6 +44,17 @@ def assVal(exp):
 
 def isDef(exp):
 	return hasForm(exp, 'define')
+
+def isSugarDef(exp):
+	return type(exp[1]) == list
+
+def transformSugarDef(exp):
+	funcArgs = exp[1]
+	func = funcArgs[0]
+	args = funcArgs[1:]
+	body = exp[2:]
+	lambdaExp = ['lambda', args] + body
+	return ['define', func, lambdaExp]
 
 def defVar(exp):
 	return exp[1]
