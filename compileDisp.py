@@ -274,7 +274,7 @@ def compFuncApp(target, linkage):
 	elif not valTarg and not retLink:
 		funcReturn = makeLabel('FUNC_RETURN')
 
-		assignCont = "cont = LABELOBJ(_%(funcReturn)s)" % locals()
+		assignCont = "cont = LABELOBJ(_%(funcReturn)s);" % locals()
 		assignVal = "val = COMPLABOBJ(func);"
 		gotoVal = "goto COMP_LABEL;"
 		funcReturnInfo = labelInfo(funcReturn)
