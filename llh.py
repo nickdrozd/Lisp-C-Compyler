@@ -40,6 +40,24 @@ def assVar(exp):
 def assVal(exp):
 	return exp[2]
 
+def isSetCar(exp):
+	return hasForm(exp, 'set-car!')
+
+def transformSetCar(exp):
+	var = assVar(exp)
+	carval = assVal(exp)
+	newVal = ['cons', carval, ['cdr', var]]
+	return ['set!', var, newVal]
+
+def isSetCdr(exp):
+	return hasForm(exp, 'set-cdr!')
+
+def transformSetCdr(exp):
+	var = assVar(exp)
+	cdrval = assVal(exp)
+	newVal = ['cons', ['car', var], cdrval]
+	return ['set!', var, newVal]
+
 # definition
 
 def isDef(exp):
@@ -79,13 +97,35 @@ def ifElse(exp):
 def isOr(exp):
 	return hasForm(exp, 'or')
 
-def transformOr(expr):
-	if len(expr[1:]) == 0:
+def transformOr(exp):
+	if len(exp[1:]) == 0:
 		return 0
 	else:
-		first = expr[1]
-		rest = transformOr(['or'] + expr[2:])
+		first = exp[1]
+		rest = transformOr(['or'] + exp[2:])
 		return ['if', first, 1, rest]
+
+def isCond(exp):
+	return hasForm(exp, 'cond')
+
+def transformCond(exp):
+	condPairs = exp[1:]
+	if len(condPairs) == 0:
+		return '0'
+
+	firstPair = condPairs[0]
+	restPairs = condPairs[1:]
+
+	condition = firstPair[0]
+	consequence = firstPair[1]
+
+	if condition == 'else':
+		return consequence
+
+	restTransformed = transformCond(['cond'] + restPairs)
+
+	return ['if', condition, consequence, restTransformed]
+
 
 # lambda abstraction
 
@@ -124,7 +164,24 @@ def operands(exp):
 	return exp[1:]
 
 
+# let
 
+def isLet(exp):
+	return hasForm(exp, 'let')
+
+def transformLet(exp):
+	bindings = exp[1]
+	body = exp[2:]
+
+	car = lambda pair: pair[0]
+	cdr = lambda pair: pair[1]
+
+	variables = list(map(car, bindings))
+	values = list(map(cdr, bindings))
+
+	lambdaExp = ['lambda', variables] + body
+
+	return [lambdaExp] + values
 
 
 

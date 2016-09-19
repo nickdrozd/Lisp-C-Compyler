@@ -19,13 +19,25 @@ def compileDisp(expr, target=val, linkage=nex):
 		return compVar(expr, target, linkage)
 	elif isLambda(expr):
 		return compLambda(expr, target, linkage)
+	elif isLet(expr):
+		expr = transformLet(expr)
+		return compApp(expr, target, linkage)
 	elif isIf(expr):
+		return compIf(expr, target, linkage)
+	elif isCond(expr):
+		expr = transformCond(expr)
 		return compIf(expr, target, linkage)
 	elif isDef(expr):
 		if isSugarDef(expr):
 			expr = transformSugarDef(expr)
 		return compDef(expr, target, linkage)
 	elif isAss(expr):
+		return compAss(expr, target, linkage)
+	elif isSetCar(expr):
+		expr = transformSetCar(expr)
+		return compAss(expr, target, linkage)
+	elif isSetCdr(expr):
+		expr = transformSetCdr(expr)
 		return compAss(expr, target, linkage)
 	elif isQuote(expr):
 		return compQuote(expr, target, linkage)
@@ -38,25 +50,7 @@ def compileDisp(expr, target=val, linkage=nex):
 	else:
 		return compApp(expr, target, linkage)
 
-
-
-
-
-
-
-def compileLinkage(linkage):
-	if linkage == ret:
-		return makeInstrSeq([cont], [], ['goto CONTINUE;'])
-	elif linkage == nex:
-		return emptyInstrSeq
-	else:
-		return makeInstrSeq([], [], ['goto %(linkage)s;' % locals()])
-
-
-def endWithLink(linkage, instrSeq):
-	return preserving([cont], instrSeq, compileLinkage(linkage))
-
-
+#----------------------------------#
 
 def compNum(expr, target, linkage):
 	instr = "%(target)s = NUMOBJ(%(expr)s);" % locals()
@@ -336,8 +330,19 @@ def compFuncApp(target, linkage, funcType):
 	else:
 		Exception('bad function call', 'compFuncApp')
 
+#----------------------------------#
+
+def compileLinkage(linkage):
+	if linkage == ret:
+		return makeInstrSeq([cont], [], ['goto CONTINUE;'])
+	elif linkage == nex:
+		return emptyInstrSeq
+	else:
+		return makeInstrSeq([], [], ['goto %(linkage)s;' % locals()])
 
 
+def endWithLink(linkage, instrSeq):
+	return preserving([cont], instrSeq, compileLinkage(linkage))
 
 
 
