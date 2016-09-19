@@ -181,15 +181,22 @@ def compLambdaBody(expr, funcEntry):
 
 def compApp(expr, target=val, linkage=nex):
 	function = operator(expr)
-	arguments = operands(expr)
 	funcCode = compileDisp(function, target=func)
+		
+	arguments = operands(expr)
 	argCodes = list(map(
 					(lambda arg: 
 						compileDisp(arg)),
 					arguments))
-
 	argListCode = constructArglist(argCodes)
-	funcCallCode = compFuncCall(target, linkage)
+
+	if function in primitives:
+		primCall = "%(target)s = applyPrimitive(func, arglist);" % locals()
+		primCallSeq = makeInstrSeq([func, arglist], [target], [primCall])
+		funcCallCode = endWithLink(linkage, primCallSeq)
+	else:
+		funcCallCode = compFuncCall(target, linkage)
+
 	arglPresFunc = preserving([func, cont], 
 						argListCode, funcCallCode)
 
