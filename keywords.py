@@ -18,5 +18,8 @@ primitives = [
 'add1', 'sub1',
 '=', '<', '>', 
 'zero?', 'one?', 'eq?', 
-'cons', 'car', 'cdr',  
+'cons', 'car', 'cdr', 
+'cadr', 'cddr', 'cdadr', 
+'caddr', 'cdddr', 'cadddr',  
+'read', 'display', 'error',
 ]
