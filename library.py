@@ -80,29 +80,29 @@ map_, foldLeft,
 add = '''
 (define + 
 	(lambda nums
-		(fold-left __+__ 0 nums)))
+		(fold-left _+_ 0 nums)))
 '''
 
 mul = '''
 (define * 
 	(lambda nums
-		(fold-left __*__ 1 nums)))
+		(fold-left _*_ 1 nums)))
 '''
 
 recursive_factorial = '''
 (define (recursive_factorial_compiled n) 
-	(if (zero? n) 
+	(if (< n 2) 
 		1 
-		(__*__ n (recursive_factorial_compiled (sub1 n)))))
+		(_*_ n (recursive_factorial_compiled (sub1 n)))))
 '''
 
 iterative_factorial = '''
 (define (iterative_factorial_compiled n)
 	(define (loop count total)
-		(if (zero? count)
+		(if (< count 2)
 			total
 			(loop (sub1 count)
-				(__*__ total count))))
+				(_*_ total count))))
 	(loop n 1))
 '''
 
@@ -110,18 +110,18 @@ recursive_fibonacci = '''
 (define (recursive_fibonacci_compiled n) 
 	(if (< n 2)
 		n 
-		(__+__ (recursive_fibonacci_compiled (- n 1)) 
+		(_+_ (recursive_fibonacci_compiled (- n 1)) 
 			(recursive_fibonacci_compiled (- n 2)))))
 '''
 
 iterative_fibonacci = '''
 (define (iterative_fibonacci_compiled n)
 	(define (loop count a b)
-		(if (zero? count)
-			a
+		(if (one? count)
+			b
 			(loop (sub1 count)
 				b
-				(__+__ a b))))
+				(_+_ a b))))
 	(loop n 0 1))
 '''
 
