@@ -14,12 +14,20 @@ nex = 'next'
 # primitives
 
 primitives = [
+# arithmetic operations
 '_+_', '_*_', '-', '/', 
 'add1', 'sub1',
+# boolean operations
 '=', '<', '>', 
-'zero?', 'one?', 'eq?', 
+'zero?', 'one?', 'eq?',
+# type-check operations 
+'null?', 'number?', 'list?',
+'boolean?', 'symbol?', 
+# list operations
 'cons', 'car', 'cdr', 
 'cadr', 'cddr', 'cdadr', 
-'caddr', 'cdddr', 'cadddr',  
-'read', 'display', 'error',
+'caddr', 'cdddr', 'cadddr', 
+# I/O operations 
+'read', 'display', 
+'newline', 'error',
 ]
