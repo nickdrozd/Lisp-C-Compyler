@@ -40,24 +40,6 @@ def assVar(exp):
 def assVal(exp):
 	return exp[2]
 
-def isSetCar(exp):
-	return hasForm(exp, 'set-car!')
-
-def transformSetCar(exp):
-	var = assVar(exp)
-	carval = assVal(exp)
-	newVal = ['cons', carval, ['cdr', var]]
-	return ['set!', var, newVal]
-
-def isSetCdr(exp):
-	return hasForm(exp, 'set-cdr!')
-
-def transformSetCdr(exp):
-	var = assVar(exp)
-	cdrval = assVal(exp)
-	newVal = ['cons', ['car', var], cdrval]
-	return ['set!', var, newVal]
-
 # definition
 
 def isDef(exp):

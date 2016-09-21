@@ -33,12 +33,6 @@ def compileDisp(expr, target=val, linkage=nex):
 		return compDef(expr, target, linkage)
 	elif isAss(expr):
 		return compAss(expr, target, linkage)
-	elif isSetCar(expr):
-		expr = transformSetCar(expr)
-		return compAss(expr, target, linkage)
-	elif isSetCdr(expr):
-		expr = transformSetCdr(expr)
-		return compAss(expr, target, linkage)
 	elif isQuote(expr):
 		return compQuote(expr, target, linkage)
 	elif isOr(expr):
