@@ -99,14 +99,16 @@ def transformCond(exp):
 	restPairs = condPairs[1:]
 
 	condition = firstPair[0]
-	consequence = firstPair[1]
+	consequence = ['begin'] + firstPair[1:]
 
 	if condition == 'else':
 		return consequence
 
 	restTransformed = transformCond(['cond'] + restPairs)
 
-	return ['if', condition, consequence, restTransformed]
+	transformed = ['if', condition, consequence, restTransformed]
+
+	return transformed
 
 
 # lambda abstraction
