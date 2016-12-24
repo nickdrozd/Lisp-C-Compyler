@@ -12,7 +12,7 @@ from llh import *
 from parse import schemify
 
 
-def compileDisp(expr, target=val, linkage=nex):
+def compExp(expr, target=val, linkage=nex):
 	if isNum(expr):
 		return compNum(expr, target, linkage)
 	elif isVar(expr):
@@ -70,7 +70,7 @@ def compAssDef(varSel, valSel, CFunc):
 	'''
 	def comp(expr, target, linkage):
 		var = varSel(expr)
-		valueCode = compileDisp(valSel(expr), val, nex)
+		valueCode = compExp(valSel(expr), val, nex)
 
 		# leave ass/def val as return val
 		instr = CFunc + "(NAMEOBJ(\"%(var)s\"), val, env);" % locals()
@@ -99,9 +99,9 @@ def compIf(expr, target=val, linkage=nex):
 	falseBranchInfo = labelInfo(falseBranch)
 	afterIfInfo = labelInfo(afterIf)
 
-	testCode = compileDisp(ifTest(expr), val, nex)
-	thenCode = compileDisp(ifThen(expr), target, linkage)
-	elseCode = compileDisp(ifElse(expr), target, thenLink)
+	testCode = compExp(ifTest(expr), val, nex)
+	thenCode = compExp(ifThen(expr), target, linkage)
+	elseCode = compExp(ifElse(expr), target, thenLink)
 
 	isTrueInstr = "if (isTrue(val)) "
 	gotoTrueInstr = "goto %(trueBranch)s;" % locals()
@@ -121,9 +121,9 @@ def compIf(expr, target=val, linkage=nex):
 def compSeq(seq, target, linkage):
 	first = firstExp(seq)
 	if isLastExp(seq):
-		return compileDisp(first, target, linkage)
+		return compExp(first, target, linkage)
 	else:
-		compFirst = compileDisp(first, target, nex)
+		compFirst = compExp(first, target, nex)
 		rest = restExps(seq)
 		compRest = compSeq(rest, target, linkage)
 		preserved = [env, cont]
@@ -169,12 +169,12 @@ def compLambdaBody(expr, funcEntry):
 
 def compApp(expr, target=val, linkage=nex):
 	function = operator(expr)
-	funcCode = compileDisp(function, target=func)
+	funcCode = compExp(function, target=func)
 		
 	arguments = operands(expr)
 	argCodes = list(map(
 					(lambda arg: 
-						compileDisp(arg)),
+						compExp(arg)),
 					arguments))
 	argListCode = constructArglist(argCodes)
 

@@ -8,7 +8,7 @@ already exists.
 
 
 from parse import parse
-from compileDisp import compileDisp
+from compExp import compExp
 from instructions import statements
 from keywords import *
 from labels import labels
@@ -36,7 +36,7 @@ def makeLispincHeader(exprSeq):
 	comp_code.write(heading)
 	for expr in exprSeq:
 		parsed = parse(expr)
-		compiled = compileDisp(parsed)
+		compiled = compExp(parsed)
 		code = statements(compiled)
 
 		for line in code:

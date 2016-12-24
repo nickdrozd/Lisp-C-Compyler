@@ -54,11 +54,3 @@ def atom(token):
 Symbol = str          # A Scheme Symbol is implemented as a Python str
 List   = list         # A Scheme List is implemented as a Python list
 Number = (int, float) # A Scheme Number is implemented as a Python int or float
-
-
-def schemestr(exp):
-    "Convert a Python object back into a Scheme-readable string."
-    if isinstance(exp, List):
-        return '(' + ' '.join(map(schemestr, exp)) + ')' 
-    else:
-        return str(exp)
