@@ -9,11 +9,10 @@ compyle(['(define f (lambda () 5))', '(define x (f))']).
 '''
 
 from parse import parse
-from compExp import compExp
 from instructions import statements
-from keywords import *
 from labels import labels
 from library import library
+from compExp import compExp
 
 
 def compyle(exprSeq):

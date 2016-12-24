@@ -4,51 +4,45 @@ TODO:
 	* generic instruction generator?
 '''
 
-from keywords import *
+from registers import *
+from primitives import primitives
 from instructions import *
-from labels import makeLabel
-from labels import labelInfo
-from llh import *
+from labels import makeLabel, labelInfo
 from parse import schemify
+from llh import *
+from macros import transformMacros
+
 
 
 def compExp(expr, target=val, linkage=nex):
-	if isNum(expr):
-		return compNum(expr, target, linkage)
-	elif isVar(expr):
-		return compVar(expr, target, linkage)
-	elif isLambda(expr):
-		return compLambda(expr, target, linkage)
-	elif isLet(expr):
-		expr = transformLet(expr)
-		return compApp(expr, target, linkage)
-	elif isIf(expr):
-		return compIf(expr, target, linkage)
-	elif isCond(expr):
-		expr = transformCond(expr)
-		return compIf(expr, target, linkage)
-	elif isDef(expr):
-		if isSugarDef(expr):
-			expr = transformSugarDef(expr)
-		return compDef(expr, target, linkage)
-	elif isAss(expr):
-		return compAss(expr, target, linkage)
-	elif isQuote(expr):
-		return compQuote(expr, target, linkage)
-	elif isOr(expr):
-		expr = transformOr(expr)
-		return compIf(expr, target, linkage)
-	elif isBegin(expr):
-		expr = beginActions(expr)
-		return compSeq(expr, target, linkage)
-	else:
-		return compApp(expr, target, linkage)
+	try:
+		tag = getTag(expr)
+	except:
+		compType = compVar if isVar(expr) else compNum
+		return compType(expr, target, val)
 
-#----------------------------------#
+	expr = transformMacros(expr)
+
+	compType = keyword_comps.get(tag, compApp)
+	return compType(expr, target, val)
+
+
+
+
+
+
+
+
+
 
 def compNum(expr, target, linkage):
 	instr = "%(target)s = NUMOBJ(%(expr)s);" % locals()
 	instrSeq = makeInstrSeq([], [target], [instr])
+	return endWithLink(linkage, instrSeq)
+
+def compVar(expr, target, linkage):
+	instr = "%(target)s = lookup(NAMEOBJ(\"%(expr)s\"), env);" % locals()
+	instrSeq = makeInstrSeq([env], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
 def compQuote(expr, target, linkage):
@@ -57,11 +51,6 @@ def compQuote(expr, target, linkage):
 
 	instr = '%(target)s = parse("%(lispText)s\\n");' % locals()
 	instrSeq = makeInstrSeq([], [target], [instr])
-	return endWithLink(linkage, instrSeq)
-
-def compVar(expr, target, linkage):
-	instr = "%(target)s = lookup(NAMEOBJ(\"%(expr)s\"), env);" % locals()
-	instrSeq = makeInstrSeq([env], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
 def compAssDef(varSel, valSel, CFunc):
@@ -117,8 +106,11 @@ def compIf(expr, target=val, linkage=nex):
 	preserved = [env, cont]
 	return preserving(preserved, testCode, testGotosThenElseSeq)
 
+def compBegin(expr, target=val, linkage=nex):
+	expr = beginActions(expr)
+	return compSeq(expr, target, linkage)
 
-def compSeq(seq, target, linkage):
+def compSeq(seq, target=val, linkage=nex):
 	first = firstExp(seq)
 	if isLastExp(seq):
 		return compExp(first, target, linkage)
@@ -338,9 +330,27 @@ def compileLinkage(linkage):
 def endWithLink(linkage, instrSeq):
 	return preserving([cont], instrSeq, compileLinkage(linkage))
 
+#--------------------------#
 
+def make_keyword_groups():
+	return {
+		('define', 'def') : compDef, 
+		('set!', 'ass!') : compAss, 
+		('lambda', 'λ', 'fun') : compLambda, 
+		('if',) : compIf, 
+		('begin', 'progn'): compBegin, 
+		('quote',) : compQuote
+	}
 
+def make_keywords():
+	keyword_groups = make_keyword_groups()
+	keyword_comps = {}
 
+	for group in keyword_groups:
+		for key in group:
+			keyword_comps[key] = keyword_groups[group]
 
+	return (keyword_comps.keys(), keyword_comps)
 
+(keywords, keyword_comps) = make_keywords()
 
