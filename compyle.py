@@ -32,16 +32,22 @@ def compyle(exprSeq):
 	print('\n')
 
 
-exprSeq = [
+exprSeq = library
+
+# exprSeq = [
+	# '5'
+	# '(define x 5)'
+	# '(if a b c)',
+	# '(and a b c)'
+	# '(or a b c)',
 	# '((addn 4) 5)',
-	'(f 1 2 3 4 5 6 7 8)',
+	# '(f 1 2 3 4 5 6 7 8)',
 	# '((lambda (s) s) (quote (3 4 5)))',
 	# '((lambda s s) 3 4 5)',
-	# '(if a b c)',
 	# '(f)', 
 	# '((f))',
 	# '((f 4))',
-]
+# ]
 
 compyle(exprSeq)
 

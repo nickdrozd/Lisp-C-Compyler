@@ -1,5 +1,8 @@
 ''' LOW-LEVEL HELPERS '''
 
+def isSelfEvaluating(exp):
+	return isNum(exp) or isVar(exp)
+
 # numbers
 
 def isNum(exp):

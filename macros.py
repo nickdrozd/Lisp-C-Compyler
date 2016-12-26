@@ -48,9 +48,17 @@ macro_transformers = {
 
 macro_keys = macro_transformers.keys()
 
+def isMacro(expr):
+	try:
+		return getTag(expr) in macro_keys
+	except:
+		return False
+
+def transformMacro(expr):
+	return macro_transformers[getTag(expr)](expr)
+
 def transformMacros(expr):
-	print(getTag(expr) in macro_keys)
-	while getTag(expr) in macro_keys:
-		expr = macro_transformers[tag](expr)
+	while isMacro(expr):
+		expr = transformMacro(expr)
 
 	return expr

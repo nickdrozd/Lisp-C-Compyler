@@ -15,15 +15,15 @@ from macros import transformMacros
 
 
 def compExp(expr, target=val, linkage=nex):
-	try:
-		tag = getTag(expr)
-	except:
-		compType = compVar if isVar(expr) else compNum
-		return compType(expr, target, val)
-
 	expr = transformMacros(expr)
-
-	compType = keyword_comps.get(tag, compApp)
+	if isSelfEvaluating(expr):
+		compType = compVar if isVar(expr) else compNum
+	else:
+		try:
+			compType = keyword_comps[getTag(expr)]
+		except:
+			compType = compApp
+	
 	return compType(expr, target, val)
 
 
