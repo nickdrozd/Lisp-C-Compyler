@@ -1,6 +1,9 @@
 from registers import *
 from instructions import *
 
+ret = 'return'
+nex = 'next'
+
 def compileLinkage(linkage):
 	if linkage == ret:
 		return makeInstrSeq([cont], [], ['goto CONTINUE;'])
