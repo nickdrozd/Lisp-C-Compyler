@@ -4,7 +4,6 @@ TODO:
 	* generic instruction generator?
 	* instrSeq class
 	* remove llh?
-	* remove last instance of labelInfo (lambdaBody)
 	* rename 'infos'
 	* move out keyword_groups (how?)
 '''
@@ -16,7 +15,7 @@ from primitives import primitives
 from instructions import *
 from linkage import *
 
-from labels import labelInfo, branchesAndInfos
+from labels import branchesAndInfos
 from parse import schemify
 from macros import transformMacros
 from llh import *
@@ -131,10 +130,10 @@ def compLambda(expr, target=val, linkage=nex):
 
 	branches, infos = branchesAndInfos(labels)
 	funcEntry, afterLambda = branches	
-	_, afterLambdaInfo = infos
+	funcEntryInfo, afterLambdaInfo = infos
 
 	lambdaLink = afterLambda if linkage == nex else linkage
-	lambdaBody = compLambdaBody(expr, funcEntry)
+	lambdaBody = compLambdaBody(expr, funcEntryInfo)
 	
 	instr = "%(target)s = COMPOBJ(_%(funcEntry)s, env);" % locals()
 	instrSeq = makeInstrSeq([env], [target], [instr])
@@ -145,11 +144,10 @@ def compLambda(expr, target=val, linkage=nex):
 
 	return appended
 
-def compLambdaBody(expr, funcEntry):
+def compLambdaBody(expr, funcEntryInfo):
 	params = lambdaParams(expr)
 	lispParams = schemify(params)
 
-	funcEntryInfo = labelInfo(funcEntry) 
 	assignFuncEnv = "env = COMPENVOBJ(func);"
 	parseParams = 'unev = parse("%(lispParams)s\\n");' % locals()
 	extendFuncEnv = "env = extendEnv(unev, arglist, env);" # %(params)s ?

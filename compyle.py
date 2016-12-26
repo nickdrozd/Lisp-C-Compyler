@@ -50,8 +50,8 @@ exprSeq = [
 	# '((f 4))',
 ]
 
-compyle(exprSeq)
-
+# compyle(exprSeq)
+compyle(library)
 
 
 
