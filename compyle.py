@@ -36,10 +36,11 @@ def compyle(exprSeq):
 
 exprSeq = [
 	# '5'
-	# '(define x 5)'
+	# '(define x 5)',
+	'(def x 5)',
 	# '(if a b c)',
 	# '(and a b c)'
-	'(or a b c)',
+	# '(or a b c)',
 	# '((addn 4) 5)',
 	# '(f 1 2 3 4 5 6 7 8)',
 	# '(lambda (x) (f x))', 
@@ -50,8 +51,8 @@ exprSeq = [
 	# '((f 4))',
 ]
 
-# compyle(exprSeq)
-compyle(library)
+compyle(exprSeq)
+# compyle(library)
 
 
 

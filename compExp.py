@@ -335,8 +335,8 @@ def compFuncApp(target, linkage, funcType):
 
 #----------------------------------#
 
-def make_keyword_groups():
-	return {
+def makeKeywords():
+	keyword_groups = {
 		define_keys : compDef, 
 		ass_keys : compAss, 
 		lambda_keys : compLambda, 
@@ -345,8 +345,6 @@ def make_keyword_groups():
 		quote_keys : compQuote
 	}
 
-def make_keywords():
-	keyword_groups = make_keyword_groups()
 	keyword_comps = {}
 
 	for group in keyword_groups:
@@ -355,5 +353,5 @@ def make_keywords():
 
 	return keyword_comps.keys(), keyword_comps
 
-keywords, keyword_comps = make_keywords()
+keywords, keyword_comps = makeKeywords()
 
