@@ -90,9 +90,11 @@ def compIf(expr, target=val, linkage=nex):
 	
 	thenLink = afterIf if linkage == nex else linkage
 
-	testCode = compExp(ifTest(expr), val, nex)
-	thenCode = compExp(ifThen(expr), target, linkage)
-	elseCode = compExp(ifElse(expr), target, thenLink)
+	(ifTest, ifThen, ifElse) = ifClauses(expr)
+
+	testCode = compExp(ifTest, val, nex)
+	thenCode = compExp(ifThen, target, linkage)
+	elseCode = compExp(ifElse, target, thenLink)
 
 	isTrueInstr = "if (isTrue(val)) "
 	gotoTrueInstr = "goto %(trueBranch)s;" % locals()
