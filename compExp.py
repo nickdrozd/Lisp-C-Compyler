@@ -23,8 +23,7 @@ def compExp(expr, target=val, linkage=nex):
 			compType = keyword_comps[getTag(expr)]
 		except:
 			compType = compApp
-	
-	return compType(expr, target, val)
+	return compType(expr, target, linkage)
 
 
 
