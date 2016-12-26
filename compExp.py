@@ -4,17 +4,24 @@ TODO:
 	* generic instruction generator?
 	* instrSeq class
 	* remove llh?
+	* remove last instance of labelInfo (lambdaBody)
+	* rename 'infos'
+	* move out keyword_groups (how?)
 '''
 
 from registers import *
+from keywords import *
 from primitives import primitives
+
 from instructions import *
-from labels import makeLabel, labelInfo, branchesAndInfos
+from linkage import *
+
+from labels import labelInfo, branchesAndInfos
 from parse import schemify
 from macros import transformMacros
 from llh import *
 
-
+#----------------------------------#
 
 def compExp(expr, target=val, linkage=nex):
 	expr = transformMacros(expr)
@@ -328,28 +335,14 @@ def compFuncApp(target, linkage, funcType):
 
 #----------------------------------#
 
-def compileLinkage(linkage):
-	if linkage == ret:
-		return makeInstrSeq([cont], [], ['goto CONTINUE;'])
-	elif linkage == nex:
-		return emptyInstrSeq
-	else:
-		return makeInstrSeq([], [], ['goto %(linkage)s;' % locals()])
-
-
-def endWithLink(linkage, instrSeq):
-	return preserving([cont], instrSeq, compileLinkage(linkage))
-
-#----------------------------------#
-
 def make_keyword_groups():
 	return {
-		('define', 'def') : compDef, 
-		('set!', 'ass!') : compAss, 
-		('lambda', 'λ', 'fun') : compLambda, 
-		('if',) : compIf, 
-		('begin', 'progn'): compBegin, 
-		('quote',) : compQuote
+		define_keys : compDef, 
+		ass_keys : compAss, 
+		lambda_keys : compLambda, 
+		if_keys : compIf, 
+		begin_keys : compBegin, 
+		quote_keys : compQuote
 	}
 
 def make_keywords():
@@ -360,7 +353,7 @@ def make_keywords():
 		for key in group:
 			keyword_comps[key] = keyword_groups[group]
 
-	return (keyword_comps.keys(), keyword_comps)
+	return keyword_comps.keys(), keyword_comps
 
-(keywords, keyword_comps) = make_keywords()
+keywords, keyword_comps = make_keywords()
 
