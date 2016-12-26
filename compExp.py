@@ -2,6 +2,8 @@
 TODO:
 	* documentation
 	* generic instruction generator?
+	* instrSeq class
+	* remove llh?
 '''
 
 from registers import *
@@ -9,8 +11,8 @@ from primitives import primitives
 from instructions import *
 from labels import makeLabel, labelInfo
 from parse import schemify
-from llh import *
 from macros import transformMacros
+from llh import *
 
 
 
@@ -25,14 +27,7 @@ def compExp(expr, target=val, linkage=nex):
 			compType = compApp
 	return compType(expr, target, linkage)
 
-
-
-
-
-
-
-
-
+#----------------------------------#
 
 def compNum(expr, target, linkage):
 	instr = "%(target)s = NUMOBJ(%(expr)s);" % locals()
@@ -330,7 +325,7 @@ def compileLinkage(linkage):
 def endWithLink(linkage, instrSeq):
 	return preserving([cont], instrSeq, compileLinkage(linkage))
 
-#--------------------------#
+#----------------------------------#
 
 def make_keyword_groups():
 	return {
