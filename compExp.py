@@ -74,6 +74,7 @@ def compAss(expr, target, linkage):
 	return comp(expr, target, linkage)
 
 def compDef(expr, target, linkage):
+	expr = transformSugarDef(expr)
 	comp = compAssDef(defVar, defVal, 'defineVar')
 	return comp(expr, target, linkage)
 
