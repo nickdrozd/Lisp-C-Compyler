@@ -9,7 +9,7 @@ TODO:
 from registers import *
 from primitives import primitives
 from instructions import *
-from labels import makeLabel, labelInfo
+from labels import makeLabel, labelInfo, branchesAndInfos
 from parse import schemify
 from macros import transformMacros
 from llh import *
@@ -74,14 +74,14 @@ def compDef(expr, target, linkage):
 	return comp(expr, target, linkage)
 
 def compIf(expr, target=val, linkage=nex):
-	trueBranch = makeLabel('TRUE_BRANCH')
-	falseBranch = makeLabel('FALSE_BRANCH')
-	afterIf = makeLabel('AFTER_IF')
-	thenLink = afterIf if linkage == nex else linkage
+	labels = ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF']
 
-	trueBranchInfo = labelInfo(trueBranch)
-	falseBranchInfo = labelInfo(falseBranch)
-	afterIfInfo = labelInfo(afterIf)
+	branches, infos = branchesAndInfos(labels)
+
+	[trueBranch, falseBranch, afterIf] = branches
+	[trueBranchInfo, falseBranchInfo, afterIfInfo] = infos
+	
+	thenLink = afterIf if linkage == nex else linkage
 
 	testCode = compExp(ifTest(expr), val, nex)
 	thenCode = compExp(ifThen(expr), target, linkage)
@@ -118,9 +118,11 @@ def compSeq(seq, target=val, linkage=nex):
 
 
 def compLambda(expr, target=val, linkage=nex):
-	funcEntry = makeLabel('ENTRY')
-	afterLambda = makeLabel('AFTER_LAMBDA')
-	afterLambdaInfo = labelInfo(afterLambda)
+	labels = ('ENTRY', 'AFTER_LAMBDA')
+
+	branches, infos = branchesAndInfos(labels)
+	funcEntry, afterLambda = branches	
+	_, afterLambdaInfo = infos
 
 	lambdaLink = afterLambda if linkage == nex else linkage
 	lambdaBody = compLambdaBody(expr, funcEntry)
@@ -159,10 +161,7 @@ def compApp(expr, target=val, linkage=nex):
 	funcCode = compExp(function, target=func)
 		
 	arguments = operands(expr)
-	argCodes = list(map(
-					(lambda arg: 
-						compExp(arg)),
-					arguments))
+	argCodes = [compExp(arg) for arg in arguments]
 	argListCode = constructArglist(argCodes)
 
 	if function in primitives:
@@ -215,17 +214,20 @@ def codeToGetRestArgs(argCodes):
 
 
 def compFuncCall(target, linkage):
-	primitiveBranch = makeLabel("PRIMITIVE")
-	compoundBranch = makeLabel("COMPOUND")
-	compiledBranch = makeLabel("COMPILED")
-	afterCall = makeLabel("AFTER_CALL")
+	labels = (
+		'PRIMITIVE', 'COMPOUND', 
+		'COMPILED', 'AFTER_CALL'
+	)
+
+	branches, infos = branchesAndInfos(labels)
+
+	(primitiveBranch, compoundBranch, 
+	 	compiledBranch, afterCall) = branches
+
+	(primitiveBranchInfo, compoundBranchInfo, 
+	 	compiledBranchInfo, afterCallInfo) = infos
 
 	endLabel = afterCall if linkage == nex else linkage
-
-	primitiveBranchInfo = labelInfo(primitiveBranch)
-	compoundBranchInfo = labelInfo(compoundBranch)
-	compiledBranchInfo = labelInfo(compiledBranch)
-	afterCallInfo = labelInfo(afterCall)
 
 	def makeTestGotoSeq(testString, label):
 		test = "if (%(testString)s(func)) " % locals()
@@ -242,14 +244,25 @@ def compFuncCall(target, linkage):
 					[target], [applyPrimitive])
 
 	# calling compFuncApp twice generates two different endLabels
-	compoundLink = compFuncApp(target, endLabel, 'compound')
-	compiledLink = compFuncApp(target, endLabel, 'compiled') 
+	funcTypes = ('compound', 'compiled')
+	compFuncApps = [
+		compFuncApp(target, endLabel, funcType)
+			for funcType in funcTypes]
+	(compoundLink, compiledLink) = compFuncApps
 
 	primitiveLink = endWithLink(linkage, applyPrimitiveSeq)
 
-	compiledLabeled = appendInstrSeqs(compiledBranchInfo, compiledLink)
-	compoundLabeled = appendInstrSeqs(compoundBranchInfo, compoundLink)
-	primitiveLabeled = appendInstrSeqs(primitiveBranchInfo, primitiveLink)
+	branchLinks = (
+		(compiledBranchInfo, compiledLink), 
+		(compoundBranchInfo, compoundLink), 
+		(primitiveBranchInfo, primitiveLink)
+	)
+
+	labeled = [appendInstrSeqs(branch, link)
+				for (branch, link) in branchLinks]
+
+	(compiledLabeled, compoundLabeled, 
+		primitiveLabeled) = labeled
 
 	compoundPrimPara = parallelInstrSeqs(compoundLabeled, primitiveLabeled)
 	compiledPara = parallelInstrSeqs(compiledLabeled, compoundPrimPara)
@@ -285,13 +298,15 @@ def compFuncApp(target, linkage, funcType):
 
 	# target is func, eg in ((f 4) 5)
 	elif not valTarg and not retLink:
-		funcReturn = makeLabel('FUNC_RETURN')
+		labels = ('FUNC_RETURN',)
+		branches, infos = branchesAndInfos(labels)
+		(funcReturn,) = branches
+		(funcReturnInfo,) = infos
 
 		assignCont = "cont = LABELOBJ(_%(funcReturn)s);" % locals()
 
 		funcList = compiledList if isCompiled else compoundList
 
-		funcReturnInfo = labelInfo(funcReturn)
 		assignTarget = "%(target)s = val;" % locals()
 		gotoLinkage = "goto %(linkage)s;" % locals()
 

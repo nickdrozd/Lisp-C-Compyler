@@ -2,9 +2,13 @@
 
 labels = []
 
+def branchesAndInfos(labels):
+	branches = [makeLabel(label) for label in labels]
+	infos = [labelInfo(branch) for branch in branches]
+	return (branches, infos)
+
 def labelInfo(label):
 	print_info = 'print_info("%(label)s");' % locals()
-
 	return (label + ':' + ' ' + print_info)
 
 # label numbering
