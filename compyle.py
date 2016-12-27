@@ -44,17 +44,17 @@ exprSeq = [
 	# '(and a b c)'
 	# '(or a b c)',
 	# '((addn 4) 5)',
-	# '(f 1 2 3 4 5 6 7 8)',
+	'(f 1 2 3 4 5 6 7 8)',
 	# '(lambda (x) (f x))', 
 	# '((lambda (s) s) (quote (3 4 5)))',
 	# '((lambda s s) 3 4 5)',
 	# '(f)', 
 	# '((f))',
-	'((f 4))',
+	# '((f 4))',
 ]
 
-# compyle(exprSeq)
-compyle(library)
+compyle(exprSeq)
+# compyle(library)
 
 
 

@@ -9,14 +9,14 @@ def transformOr(exp):
 		return ['if', first, 1, rest]
 
 def transformCond(exp):
-	condPairs = exp[1:]
-	if len(condPairs) == 0:
+	_, *condPairs = exp
+	if not condPairs:
 		return '0'
 
-	firstPair, restPairs = condPairs[0], condPairs[1:]
+	firstPair, *restPairs = condPairs
 
-	condition = firstPair[0]
-	consequence = ['begin'] + firstPair[1:]
+	condition, *consqBody = firstPair
+	consequence = ['begin'] + consqBody
 
 	if condition == 'else':
 		return consequence
@@ -28,8 +28,9 @@ def transformCond(exp):
 	return transformed
 
 def transformLet(exp):
-	bindings, body = exp[1], exp[2:]
+	_, bindings, *body = exp
 
+	# is there a more elegant way to do this?
 	variables = [binding[0] for binding in bindings]
 	values = [binding[1] for binding in bindings]
 

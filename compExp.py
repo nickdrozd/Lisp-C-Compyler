@@ -40,10 +40,12 @@ def compNum(expr, target, linkage):
 	instrSeq = makeInstrSeq([], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
+
 def compVar(expr, target, linkage):
 	instr = "%(target)s = lookup(NAMEOBJ(\"%(expr)s\"), env);" % locals()
 	instrSeq = makeInstrSeq([env], [target], [instr])
 	return endWithLink(linkage, instrSeq)
+
 
 def compQuote(expr, target, linkage):
 	_, text = expr
@@ -52,6 +54,7 @@ def compQuote(expr, target, linkage):
 	instr = '%(target)s = parse("%(lispText)s\\n");' % locals()
 	instrSeq = makeInstrSeq([], [target], [instr])
 	return endWithLink(linkage, instrSeq)
+
 
 def compAssDef(CFunc):
 	"CFunc is string"
@@ -70,8 +73,10 @@ def compAssDef(CFunc):
 
 	return comp
 
+
 compAss = compAssDef('setVar')
 compDef = compAssDef('defineVar')
+
 
 def compIf(expr, target=val, linkage=nex):
 	labels = ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF']
@@ -103,9 +108,11 @@ def compIf(expr, target=val, linkage=nex):
 	preserved = [env, cont]
 	return preserving(preserved, testCode, testGotosThenElseSeq)
 
+
 def compBegin(expr, target=val, linkage=nex):
 	_, *seq = expr
 	return compSeq(seq, target, linkage)
+
 
 def compSeq(seq, target=val, linkage=nex):
 	first, *rest = seq
@@ -116,6 +123,7 @@ def compSeq(seq, target=val, linkage=nex):
 		compRest = compSeq(rest, target, linkage)
 		preserved = [env, cont]
 		return preserving(preserved, compFirst, compRest)
+
 
 def compLambda(expr, target=val, linkage=nex):
 	labels = ('ENTRY', 'AFTER_LAMBDA')
@@ -135,6 +143,7 @@ def compLambda(expr, target=val, linkage=nex):
 	appended = appendInstrSeqs(tackedOn, afterLambdaInfo)
 
 	return appended
+
 
 def compLambdaBody(expr, funcEntryInfo):
 	_, params, *body = expr
@@ -176,20 +185,23 @@ def compApp(expr, target=val, linkage=nex):
 	return preserving([env, cont], 
 				funcCode, arglPresFunc)
 
+
 def constructArglist(argCodes):
 	argCodes = argCodes[::-1]
 
-	if len(argCodes) == 0:
+	if not argCodes:
 		instr = "arglist = NULLOBJ;"
 		return makeInstrSeq([], [arglist], [instr])
+
 	# else:
 	instr = "arglist = CONS(val, NULLOBJ);"
 	instrSeq = makeInstrSeq([val], [arglist], [instr])
-	lastArg = argCodes[0]
+
+	lastArg, *restArgs = argCodes
+
 	codeToGetLastArg = appendInstrSeqs(lastArg, instrSeq)
 
-	restArgs = argCodes[1:]
-	if len(restArgs) == 0:
+	if not restArgs:
 		return codeToGetLastArg
 	else:
 		return preserving([env], codeToGetLastArg,
@@ -197,15 +209,14 @@ def constructArglist(argCodes):
 
 
 def codeToGetRestArgs(argCodes):
-	nextArg = argCodes[0]
+	nextArg, *restArgs = argCodes
 	instr = "arglist = CONS(val, arglist);"
 	instrSeq = makeInstrSeq([val, arglist], 
 					[arglist], [instr])
 	codeForNextArg = preserving([arglist], 
 							nextArg, instrSeq)
 
-	restArgs = argCodes[1:]
-	if len(restArgs) == 0:
+	if not restArgs:
 		return codeForNextArg
 	else:
 		return preserving([env], codeForNextArg,
@@ -269,8 +280,8 @@ def compFuncCall(target, linkage):
 	return appendInstrSeqs(testSeqs, compiledPara, afterCallInfo)
 
 
-# funcType as string: 'compiled' or 'compound'
 def compFuncApp(target, linkage, funcType):
+	"funcType as string: 'compiled' or 'compound'"
 	valTarg = target == val
 	retLink = linkage == ret
 
