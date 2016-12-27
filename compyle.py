@@ -38,7 +38,7 @@ exprSeq = [
 	# '5'
 	# '(define x 5)',
 	# '(def x 5)',
-	'(def (f x) (+ x 5))',
+	# '(def (f x) (+ x 5))',
 	# '(set! (f x) (+ x 5))',
 	# '(if a b c)',
 	# '(and a b c)'
@@ -50,11 +50,11 @@ exprSeq = [
 	# '((lambda s s) 3 4 5)',
 	# '(f)', 
 	# '((f))',
-	# '((f 4))',
+	'((f 4))',
 ]
 
-compyle(exprSeq)
-# compyle(library)
+# compyle(exprSeq)
+compyle(library)
 
 
 

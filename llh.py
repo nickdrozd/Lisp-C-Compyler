@@ -21,11 +21,6 @@ def isVar(exp):
 def getTag(exp):
 	return exp[0]
 
-# quotation
-
-def quotedText(exp):
-	return exp[1]
-
 # definition
 
 def isSugarDef(exp):
@@ -38,33 +33,3 @@ def transformSugarDef(exp):
 	func, args = funcArgs[0], funcArgs[1:]
 	lambdaExp = ['lambda', args] + body
 	return ['define', func, lambdaExp]
-
-# lambda abstraction
-
-def lambdaParams(exp):
-	return exp[1]
-
-def lambdaBody(exp):
-	return exp[2:]
-
-# sequence
-
-def firstExp(seq):
-	return seq[0]
-
-def restExps(seq):
-	return seq[1:]
-
-def isLastExp(seq):
-	return len(seq[1:]) == 0
-
-def beginActions(exp):
-	return exp[1:]
-
-# function application
-
-def operator(exp):
-	return exp[0]
-
-def operands(exp):
-	return exp[1:]

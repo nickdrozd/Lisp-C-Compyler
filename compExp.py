@@ -46,7 +46,7 @@ def compVar(expr, target, linkage):
 	return endWithLink(linkage, instrSeq)
 
 def compQuote(expr, target, linkage):
-	text = quotedText(expr)
+	_, text = expr
 	lispText = schemify(text)
 
 	instr = '%(target)s = parse("%(lispText)s\\n");' % locals()
@@ -104,20 +104,18 @@ def compIf(expr, target=val, linkage=nex):
 	return preserving(preserved, testCode, testGotosThenElseSeq)
 
 def compBegin(expr, target=val, linkage=nex):
-	seq = beginActions(expr)
+	_, *seq = expr
 	return compSeq(seq, target, linkage)
 
 def compSeq(seq, target=val, linkage=nex):
-	first = firstExp(seq)
-	if isLastExp(seq):
+	first, *rest = seq
+	if not rest:
 		return compExp(first, target, linkage)
 	else:
 		compFirst = compExp(first, target, nex)
-		rest = restExps(seq)
 		compRest = compSeq(rest, target, linkage)
 		preserved = [env, cont]
 		return preserving(preserved, compFirst, compRest)
-
 
 def compLambda(expr, target=val, linkage=nex):
 	labels = ('ENTRY', 'AFTER_LAMBDA')
@@ -139,7 +137,7 @@ def compLambda(expr, target=val, linkage=nex):
 	return appended
 
 def compLambdaBody(expr, funcEntryInfo):
-	params = lambdaParams(expr)
+	_, params, *body = expr
 	lispParams = schemify(params)
 
 	assignFuncEnv = "env = COMPENVOBJ(func);"
@@ -151,17 +149,17 @@ def compLambdaBody(expr, funcEntryInfo):
 
 	instrSeq = makeInstrSeq([env, func, arglist], 
 				[env], instrList)
-	bodySeq = compSeq(lambdaBody(expr), val, ret)
+	bodySeq = compSeq(body, val, ret)
 	appended = appendInstrSeqs(instrSeq, bodySeq)
 
 	return appended
 
 
 def compApp(expr, target=val, linkage=nex):
-	function = operator(expr)
+	function, *arguments = expr
+
 	funcCode = compExp(function, target=func)
 		
-	arguments = operands(expr)
 	argCodes = [compExp(arg) for arg in arguments]
 	argListCode = constructArglist(argCodes)
 
