@@ -58,6 +58,19 @@ def compQuote(expr, target, linkage):
 
 def compAssDef(CFunc):
 	"CFunc is string"
+
+	def isSugarDef(exp):
+	# list? tuple? something more general?
+		return type(exp[1]) == list
+
+	def transformSugarDef(exp):
+		if not isSugarDef(exp):
+			return exp
+		_, funcArgs, *body = exp
+		func, *args = funcArgs
+		lambdaExp = ['lambda', args] + body
+		return ['define', func, lambdaExp]
+		
 	def comp(expr, target, linkage):
 		expr = transformSugarDef(expr)
 
