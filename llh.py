@@ -26,14 +26,6 @@ def getTag(exp):
 def quotedText(exp):
 	return exp[1]
 
-# assignment
-
-def assVar(exp):
-	return exp[1]
-
-def assVal(exp):
-	return exp[2]
-
 # definition
 
 def isSugarDef(exp):
@@ -46,17 +38,6 @@ def transformSugarDef(exp):
 	func, args = funcArgs[0], funcArgs[1:]
 	lambdaExp = ['lambda', args] + body
 	return ['define', func, lambdaExp]
-
-def defVar(exp):
-	return exp[1]
-
-def defVal(exp):
-	return exp[2]
-
-# booleans
-
-def ifClauses(exp):
-	return exp[1:]
 
 # lambda abstraction
 

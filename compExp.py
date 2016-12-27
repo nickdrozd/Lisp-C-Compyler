@@ -53,16 +53,16 @@ def compQuote(expr, target, linkage):
 	instrSeq = makeInstrSeq([], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
-def compAssDef(varSel, valSel, CFunc):
-	'''
-	CFunc is string
-	'''
+def compAssDef(CFunc):
+	"CFunc is string"
 	def comp(expr, target, linkage):
-		var = varSel(expr)
-		valueCode = compExp(valSel(expr), val, nex)
+		expr = transformSugarDef(expr)
+
+		_, variable, value = expr
+		valueCode = compExp(value, val, nex)
 
 		# leave ass/def val as return val
-		instr = CFunc + "(NAMEOBJ(\"%(var)s\"), val, env);" % locals()
+		instr = CFunc + "(NAMEOBJ(\"%(variable)s\"), val, env);" % locals()
 		instrSeq = makeInstrSeq([env, val], [target], [instr])
 
 		preserved = preserving([env], valueCode, instrSeq)
@@ -70,14 +70,8 @@ def compAssDef(varSel, valSel, CFunc):
 
 	return comp
 
-def compAss(expr, target, linkage):
-	comp = compAssDef(assVar, assVal, 'setVar')
-	return comp(expr, target, linkage)
-
-def compDef(expr, target, linkage):
-	expr = transformSugarDef(expr)
-	comp = compAssDef(defVar, defVal, 'defineVar')
-	return comp(expr, target, linkage)
+compAss = compAssDef('setVar')
+compDef = compAssDef('defineVar')
 
 def compIf(expr, target=val, linkage=nex):
 	labels = ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF']
@@ -89,7 +83,7 @@ def compIf(expr, target=val, linkage=nex):
 	
 	thenLink = afterIf if linkage == nex else linkage
 
-	(ifTest, ifThen, ifElse) = ifClauses(expr)
+	(_, ifTest, ifThen, ifElse) = expr
 
 	testCode = compExp(ifTest, val, nex)
 	thenCode = compExp(ifThen, target, linkage)
@@ -110,8 +104,8 @@ def compIf(expr, target=val, linkage=nex):
 	return preserving(preserved, testCode, testGotosThenElseSeq)
 
 def compBegin(expr, target=val, linkage=nex):
-	expr = beginActions(expr)
-	return compSeq(expr, target, linkage)
+	seq = beginActions(expr)
+	return compSeq(seq, target, linkage)
 
 def compSeq(seq, target=val, linkage=nex):
 	first = firstExp(seq)
