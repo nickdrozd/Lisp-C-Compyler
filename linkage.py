@@ -6,11 +6,11 @@ nex = 'next'
 
 def compileLinkage(linkage):
 	if linkage == ret:
-		return makeInstrSeq([cont], [], ['goto CONTINUE;'])
+		return InstrSeq([cont], [], ['goto CONTINUE;'])
 	elif linkage == nex:
-		return emptyInstrSeq
+		return InstrSeq()
 	else:
-		return makeInstrSeq([], [], ['goto %(linkage)s;' % locals()])
+		return InstrSeq([], [], ['goto %(linkage)s;' % locals()])
 
 
 def endWithLink(linkage, instrSeq):
