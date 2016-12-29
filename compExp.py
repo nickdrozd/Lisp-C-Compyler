@@ -36,23 +36,19 @@ def compExp(expr, target=val, linkage=nex):
 #----------------------------------#
 
 def compNum(expr, target, linkage):
-	instr = "%(target)s = NUMOBJ(%(expr)s);" % locals()
-	instrSeq = makeInstrSeq([], [target], [instr])
+	instrSeq = NumInstr(expr, target)
 	return endWithLink(linkage, instrSeq)
 
 
 def compVar(expr, target, linkage):
-	instr = "%(target)s = lookup(NAMEOBJ(\"%(expr)s\"), env);" % locals()
-	instrSeq = makeInstrSeq([env], [target], [instr])
+	instrSeq = VarInstr(expr, target)
 	return endWithLink(linkage, instrSeq)
 
 
 def compQuote(expr, target, linkage):
 	_, text = expr
 	lispText = schemify(text)
-
-	instr = '%(target)s = parse("%(lispText)s\\n");' % locals()
-	instrSeq = makeInstrSeq([], [target], [instr])
+	instrSeq = QuoteInstr(lispText, target)
 	return endWithLink(linkage, instrSeq)
 
 
@@ -70,7 +66,7 @@ def compAssDef(CFunc):
 		func, *args = funcArgs
 		lambdaExp = ['lambda', args] + body
 		return ['define', func, lambdaExp]
-		
+
 	def comp(expr, target, linkage):
 		expr = transformSugarDef(expr)
 

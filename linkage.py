@@ -8,7 +8,7 @@ def compileLinkage(linkage):
 	if linkage == ret:
 		return InstrSeq([cont], [], ['goto CONTINUE;'])
 	elif linkage == nex:
-		return InstrSeq()
+		return InstrSeq([], [], [])
 	else:
 		return InstrSeq([], [], ['goto %(linkage)s;' % locals()])
 

@@ -31,9 +31,7 @@ class RestoreInstr(InstrSeq):
 class NumInstr(InstrSeq):
 	def __init__(self, expr, target):
 		instr = numText(expr, target)
-		super().__init__(
-			modified=set(target), 
-			statements=[instr])
+		super().__init__([], [target], [instr])
 
 def compNum(expr, target, linkage):
 	instr = "%(target)s = NUMOBJ(%(expr)s);" % locals()
@@ -56,7 +54,8 @@ def compVar(expr, target, linkage):
 
 class QuoteInstr(InstrSeq):
 	def __init__(self, expr, target):
-		instr = quoteText(expr, target):
+		instr = quoteText(expr, target)
+		super().__init__([], [target], [instr])
 
 def compQuote(expr, target, linkage):
 	_, text = expr
