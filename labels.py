@@ -1,6 +1,8 @@
-# labels
+from ctext import labelText
 
+# global counters
 labels = []
+label_count = 0
 
 def branchesAndInfos(labels):
 	branches = [makeLabel(label) for label in labels]
@@ -13,10 +15,9 @@ def labelInfo(label):
 
 # label numbering
 
-label_count = 0
-
 def newLabelNumber():
 	global label_count
+	# can we just take len(labels)?
 	label_count += 1
 	return label_count
 

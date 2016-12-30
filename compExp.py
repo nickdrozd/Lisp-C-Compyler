@@ -103,10 +103,7 @@ def compIf(expr, target=val, linkage=nex):
 	thenCode = compExp(ifThen, target, linkage)
 	elseCode = compExp(ifElse, target, thenLink)
 
-	isTrueInstr = "if (isTrue(val)) "
-	gotoTrueInstr = "goto %(trueBranch)s;" % locals()
-	instrList = [isTrueInstr + gotoTrueInstr]
-	testGotoSeq = makeInstrSeq([val], [], instrList)
+	testGotoSeq = ifTestInstr(trueBranch)
 
 	thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
 	elseCodeLabeled = appendInstrSeqs(falseBranchInfo, elseCode)

@@ -33,22 +33,12 @@ class NumInstr(InstrSeq):
 		instr = numText(expr, target)
 		super().__init__([], [target], [instr])
 
-def compNum(expr, target, linkage):
-	instr = "%(target)s = NUMOBJ(%(expr)s);" % locals()
-	instrSeq = makeInstrSeq([], [target], [instr])
-	return endWithLink(linkage, instrSeq)
-
 ###
 
 class VarInstr(InstrSeq):
 	def __init__(self, expr, target):
 		instr = varText(expr, target)
 		super().__init__([env], [target], [instr])
-
-def compVar(expr, target, linkage):
-	instr = "%(target)s = lookup(NAMEOBJ(\"%(expr)s\"), env);" % locals()
-	instrSeq = makeInstrSeq([env], [target], [instr])
-	return endWithLink(linkage, instrSeq)
 
 ###
 
@@ -57,10 +47,16 @@ class QuoteInstr(InstrSeq):
 		instr = quoteText(expr, target)
 		super().__init__([], [target], [instr])
 
-def compQuote(expr, target, linkage):
-	_, text = expr
-	lispText = schemify(text)
+###
 
-	instr = 
-	instrSeq = makeInstrSeq([], [target], [instr])
-	return endWithLink(linkage, instrSeq)
+class IfTestInstr(InstrSeq):
+	def __init__(self, label):
+		instr = ifTestText(label)
+		super().__init__([val], [], [instr])
+
+###
+
+class LambdaInstr(InstrSeq):
+	def __init__(self, expr, target):
+		instr = lambdaText(expr, target)
+		super().__init__([env], [target], [instr])
