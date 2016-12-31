@@ -1,3 +1,5 @@
+from ctext import saveText, restoreText
+
 class InstrSeq:
 	def __init__(self, needed=[], 
 					modified=[], 
@@ -12,11 +14,32 @@ class InstrSeq:
 	def modifies(self, reg):
 		return reg in self.modifies
 
-	def tackOn(seq):
+	def addNeeded(self, reg):
+		self.needed.update(reg)
+
+	def addModified(self, reg):
+		self.modified.update(reg)
+
+	def addStackInstrs(self, reg):
+		self.statements = (
+			saveText(reg) + 
+			self.statements + 
+			restoreText(reg)
+		)
+
+	def preserveReg(self, reg):
+		self.addNeeded(reg)
+		self.addModified(reg)
+		self.addStackInstrs(reg)
+
+	def tackOnInstr(self, seq):
 		if type(seq) == str:
 			statements = [seq]
 		elif isinstance(seq, InstrSeq):
-			statements
+			statements = seq.statements
+		else:
+			statements = seq
+
 		self.statements += statements
 
 

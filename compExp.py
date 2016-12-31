@@ -15,7 +15,7 @@ from primitives import primitives
 from instructions import *
 from linkage import *
 
-from labels import branchesAndInfos
+from labels import *
 from parse import schemify
 from macros import transformMacros
 from llh import *
@@ -94,6 +94,8 @@ def compIf(expr, target=val, linkage=nex):
 
 	[trueBranch, falseBranch, afterIf] = branches
 	[trueBranchInfo, falseBranchInfo, afterIfInfo] = infos
+
+	###
 	
 	thenLink = afterIf if linkage == nex else linkage
 
@@ -113,6 +115,30 @@ def compIf(expr, target=val, linkage=nex):
 
 	preserved = [env, cont]
 	return preserving(preserved, testCode, testGotosThenElseSeq)
+
+
+def compIf(expr, target=val, linkage=nex):
+	# it would be nice to push these into IfInstr, 
+	# but afterIf is needed for compiledCode (thenLink)
+	labels = makeIfLabels()
+	[trueBranch, falseBranch, afterIf] = labels
+	thenLink = afterIf if linkage == nex else linkage
+
+	(_, ifTest, ifThen, ifElse) = expr
+
+	compiledCode = [
+		compExp(exp, targ, link) for 
+			(exp, targ, link) in [
+				(ifTest, val, nex), 
+				(ifThen, target, linkage), 
+				(ifElse, target, thenLink)
+			]
+	]
+
+	return IfInstr(compiledCode, labels)
+
+
+
 
 
 def compBegin(expr, target=val, linkage=nex):
@@ -137,6 +163,8 @@ def compLambda(expr, target=val, linkage=nex):
 	branches, infos = branchesAndInfos(labels)
 	funcEntry, afterLambda = branches	
 	funcEntryInfo, afterLambdaInfo = infos
+
+	###
 
 	lambdaLink = afterLambda if linkage == nex else linkage
 	lambdaBody = compLambdaBody(expr, funcEntryInfo)

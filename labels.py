@@ -1,8 +1,12 @@
-from ctext import labelText
+from ctext import *
 
 # global counters
 labels = []
 label_count = 0
+
+def makeIfLabels():
+	'trueBranch, falseBranch, afterIf'
+	return [makeLabel(label) for label in ifBranches]
 
 def branchesAndInfos(labels):
 	branches = [makeLabel(label) for label in labels]

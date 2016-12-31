@@ -47,3 +47,43 @@ class LambdaInstr(InstrSeq):
 		# TODO: incorporate all lambda stuff here?
 		# instr = makeLambdaText(expr, target)
 		# super().__init__([env], [target], [instr])
+
+
+
+
+
+
+
+
+class IfInstr(InstrSeq):
+	def __init__(self, compiledCode, labels):
+		testCode, thenCode, elseCode = compiledCode
+		trueBranch, falseBranch, afterIf = labels
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
