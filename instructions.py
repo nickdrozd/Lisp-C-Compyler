@@ -1,7 +1,3 @@
-from ctext import *
-
-# instructions
-
 class InstrSeq:
 	def __init__(self, needed=[], 
 					modified=[], 
@@ -16,47 +12,23 @@ class InstrSeq:
 	def modifies(self, reg):
 		return reg in self.modifies
 
-###
+	def tackOn(seq):
+		if type(seq) == str:
+			statements = [seq]
+		elif isinstance(seq, InstrSeq):
+			statements
+		self.statements += statements
 
-class SaveInstr(InstrSeq):
-	def __init__(self, reg):
-		super().__init__([reg], [], [saveText(reg)])
 
-class RestoreInstr(InstrSeq):
-	def __init__(self, reg):
-		super().__init__([], [reg], [restoreText(reg)])
+def appendInstrSeqs(*seqs):
+	result = InstrSeq()
+	for seq in seqs:
+		result.needed.update(
+			seq.needed.difference(
+				result.modified))
 
-###
+		result.modified.update(seq.modified)
 
-class NumInstr(InstrSeq):
-	def __init__(self, expr, target):
-		instr = numText(expr, target)
-		super().__init__([], [target], [instr])
+		result.statements += seq.statements
+	return result
 
-###
-
-class VarInstr(InstrSeq):
-	def __init__(self, expr, target):
-		instr = varText(expr, target)
-		super().__init__([env], [target], [instr])
-
-###
-
-class QuoteInstr(InstrSeq):
-	def __init__(self, expr, target):
-		instr = quoteText(expr, target)
-		super().__init__([], [target], [instr])
-
-###
-
-class IfTestInstr(InstrSeq):
-	def __init__(self, label):
-		instr = ifTestText(label)
-		super().__init__([val], [], [instr])
-
-###
-
-class LambdaInstr(InstrSeq):
-	def __init__(self, expr, target):
-		instr = lambdaText(expr, target)
-		super().__init__([env], [target], [instr])

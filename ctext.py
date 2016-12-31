@@ -9,9 +9,9 @@ from parse import schemify
 assText = lambda instr: lambda expr, reg: instr.format(reg, expr)
 
 numText = assText('{} = NUMOBJ({});')
-varText = assText('{} = lookup(NAMEOBJ("{}"), env);')
-quoteText = assText('{} = parse("{}\\n");')
-lambdaText = assText('{} = COMPOBJ(_{}, env);'
+lookupText = assText('{} = lookup(NAMEOBJ("{}"), env);')
+parseText = assText('{} = parse("{}\\n");')
+
 
 # stack operations
 
@@ -31,4 +31,13 @@ infoText = lambda label: 'print_info("{}");'.format(label)
 
 labelText = lambda label: labelDestText(label) + ' ' + infoText(label)
 
+# lambda
 
+makeLambdaText = assText('{} = COMPOBJ(_{}, env);')
+assFuncEnvText = 'env = COMPENVOBJ(func);'
+
+# arglist
+
+nullArglText = 'arglist = NULLOBJ;'
+consValNullText = 'arglist = CONS(val, NULLOBJ);'
+consValArglText = 'arglist = CONS(val, arglist);'

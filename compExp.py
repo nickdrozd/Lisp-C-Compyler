@@ -143,8 +143,8 @@ def compLambda(expr, target=val, linkage=nex):
 	
 	instr = "%(target)s = COMPOBJ(_%(funcEntry)s, env);" % locals()
 	instrSeq = makeInstrSeq([env], [target], [instr])
-
 	instrLinked = endWithLink(lambdaLink, instrSeq)
+
 	tackedOn = tackOnInstrSeq(instrLinked, lambdaBody)
 	appended = appendInstrSeqs(tackedOn, afterLambdaInfo)
 
