@@ -6,13 +6,21 @@ from parse import schemify
 
 # assignments
 
-def assText(text):
+def assignText(text):
 	return lambda expr, target: text.format(target, expr)
 
-numText = assText('{} = NUMOBJ({});')
-lookupText = assText('{} = lookup(NAMEOBJ("{}"), env);')
-parseText = assText('{} = parse("{}\\n");')
+numText = assignText('{} = NUMOBJ({});')
+lookupText = assignText('{} = lookup(NAMEOBJ("{}"), env);')
+parseText = assignText('{} = parse("{}\\n");')
 
+# ass / def
+
+def assDefText(cmd):
+	text = cmd + '(NAMEOBJ(\"{}\"), val, env);'
+	return lambda var: text.format(var)
+
+assCmd = 'setVar'
+defCmd = 'defineVar'
 
 # stack operations
 
@@ -24,12 +32,14 @@ restoreText = stackText('restore')
 
 # labels, branches, gotos
 
-ifBranches = ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF']
+ifBranches = ('TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF')
 
 def gotoText(label):
 	return 'goto {};'.format(label)
 
-def ifTestText(label):
+gotoContinueText = gotoText('CONTINUE')
+
+def ifTestGotoText(label):
 	return 'if (isTrue(val)) ' + gotoText(label)
 
 def labelDestText(label):
@@ -37,11 +47,11 @@ def labelDestText(label):
 
 infoText = lambda label: 'print_info("{}");'.format(label)
 
-labelText = lambda label: labelDestText(label) + ' ' + infoText(label)
+branchText = lambda label: labelDestText(label) + ' ' + infoText(label)
 
 # lambda
 
-makeLambdaText = assText('{} = COMPOBJ(_{}, env);')
+makeLambdaText = assignText('{} = COMPOBJ(_{}, env);')
 assFuncEnvText = 'env = COMPENVOBJ(func);'
 
 # arglist
