@@ -13,16 +13,20 @@ def labelInfo(label):
 
 # label numbering
 
-label_count = 0
+label_counts = {}
 
-def newLabelNumber():
-	global label_count
-	label_count += 1
-	return label_count
+def newLabelNumber(name):
+	try:
+		label_counts[name] += 1
+	except:
+		label_counts[name] = 1
+
+	return label_counts[name]
 
 def makeLabel(name):
 	global labels
-	label = name + '_' + str(newLabelNumber())
+	global label_counts
+	label = name + '_' + str(newLabelNumber(name))
 	labels += [label]
 	return label
 
