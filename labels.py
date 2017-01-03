@@ -2,7 +2,6 @@ from ctext import *
 
 # global counters
 labels = []
-label_count = 0
 
 def makeIfLabels():
 	'trueBranch, falseBranch, afterIf'
@@ -23,15 +22,20 @@ def labelInfo(label):
 
 # label numbering
 
-def newLabelNumber():
-	global label_count
-	# can we just take len(labels)?
-	label_count += 1
-	return label_count
+label_counts = {}
+
+def newLabelNumber(name):
+	try:
+		label_counts[name] += 1
+	except:
+		label_counts[name] = 1
+
+	return label_counts[name]
 
 def makeLabel(name):
 	global labels
-	label = name + '_' + str(newLabelNumber())
+	global label_counts
+	label = name + '_' + str(newLabelNumber(name))
 	labels += [label]
 	return label
 
