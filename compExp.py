@@ -8,11 +8,14 @@ TODO:
 	* move out keyword_groups (how?)
 '''
 
+from parse import parse # delete this
+
 from registers import *
 from keywords import *
 from primitives import primitives
 
 from instructions import *
+from instrseqs import *
 from linkage import *
 
 from labels import *
@@ -36,27 +39,19 @@ def compExp(expr, target=val, linkage=nex):
 #----------------------------------#
 
 def compNum(expr, target, linkage):
-	instrSeq = NumInstr(expr, target)
-	return endWithLink(linkage, instrSeq)
-
+	return NumSeq(expr, target, linkage)
 
 def compVar(expr, target, linkage):
-	instrSeq = VarInstr(expr, target)
-	return endWithLink(linkage, instrSeq)
-
+	return VarSeq(expr, target, linkage)
 
 def compQuote(expr, target, linkage):
 	_, text = expr
 	lispText = schemify(text)
-	instrSeq = QuoteInstr(lispText, target)
-	return endWithLink(linkage, instrSeq)
+	return QuoteSeq(lispText, target, linkage)
 
-
-def compAssDef(CFunc):
-	"CFunc is string"
-
+def compAssDef(seqType):
 	def isSugarDef(exp):
-	# list? tuple? something more general?
+		# list? tuple? something more general?
 		return type(exp[1]) == list
 
 	def transformSugarDef(exp):
@@ -73,58 +68,52 @@ def compAssDef(CFunc):
 		_, variable, value = expr
 		valueCode = compExp(value, val, nex)
 
-		# leave ass/def val as return val
-		instr = CFunc + "(NAMEOBJ(\"%(variable)s\"), val, env);" % locals()
-		instrSeq = makeInstrSeq([env, val], [target], [instr])
-
-		preserved = preserving([env], valueCode, instrSeq)
-		return endWithLink(linkage, preserved)
+		return seqType(variable, valCode, target, linkage)
 
 	return comp
 
+compAss = compAssDef(AssSeq)
+compDef = compAssDef(DefSeq)
 
-compAss = compAssDef('setVar')
-compDef = compAssDef('defineVar')
 
+# def compIf(expr, target=val, linkage=nex):
+# 	labels = ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF']
 
-def compIf(expr, target=val, linkage=nex):
-	labels = ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF']
+# 	branches, infos = branchesAndInfos(labels)
 
-	branches, infos = branchesAndInfos(labels)
+# 	[trueBranch, falseBranch, afterIf] = branches
+# 	[trueBranchInfo, falseBranchInfo, afterIfInfo] = infos
 
-	[trueBranch, falseBranch, afterIf] = branches
-	[trueBranchInfo, falseBranchInfo, afterIfInfo] = infos
-
-	###
+# 	###
 	
-	thenLink = afterIf if linkage == nex else linkage
+# 	thenLink = afterIf if linkage == nex else linkage
 
-	(_, ifTest, ifThen, ifElse) = expr
+# 	(_, ifTest, ifThen, ifElse) = expr
 
-	testCode = compExp(ifTest, val, nex)
-	thenCode = compExp(ifThen, target, linkage)
-	elseCode = compExp(ifElse, target, thenLink)
+# 	testCode = compExp(ifTest, val, nex)
+# 	thenCode = compExp(ifThen, target, linkage)
+# 	elseCode = compExp(ifElse, target, thenLink)
 
-	testGotoSeq = ifTestInstr(trueBranch)
+# 	testGotoSeq = ifTestInstr(trueBranch)
 
-	thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
-	elseCodeLabeled = appendInstrSeqs(falseBranchInfo, elseCode)
+# 	thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
+# 	elseCodeLabeled = appendInstrSeqs(falseBranchInfo, elseCode)
 
-	elseThenSeq = parallelInstrSeqs(elseCodeLabeled, thenCodeLabeled)
-	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, elseThenSeq, afterIfInfo)
+# 	elseThenSeq = parallelInstrSeqs(elseCodeLabeled, thenCodeLabeled)
+# 	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, elseThenSeq, afterIfInfo)
 
-	preserved = [env, cont]
-	return preserving(preserved, testCode, testGotosThenElseSeq)
+# 	preserved = [env, cont]
+# 	return preserving(preserved, testCode, testGotosThenElseSeq)
 
 
 def compIf(expr, target=val, linkage=nex):
 	# it would be nice to push these into IfInstr, 
 	# but afterIf is needed for compiledCode (thenLink)
 	labels = makeIfLabels()
-	[trueBranch, falseBranch, afterIf] = labels
+	trueBranch, falseBranch, afterIf = labels
 	thenLink = afterIf if linkage == nex else linkage
 
-	(_, ifTest, ifThen, ifElse) = expr
+	_, ifTest, ifThen, ifElse = expr
 
 	compiledCode = [
 		compExp(exp, targ, link) for 
@@ -135,7 +124,12 @@ def compIf(expr, target=val, linkage=nex):
 			]
 	]
 
-	return IfInstr(compiledCode, labels)
+	# print('compIf')
+	# print('test', compiledCode[0].statements)
+	# print('then', compiledCode[1].statements)
+	# print('else', compiledCode[2].statements)
+
+	return IfSeq(compiledCode, labels)
 
 
 

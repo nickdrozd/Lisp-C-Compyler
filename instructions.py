@@ -9,6 +9,9 @@ class InstrSeq:
 		self.modified = set(modified)
 		self.statements = statements
 
+	def __str__(self):
+		return '\n'.join(self.statements)
+
 	def needs(self, reg):
 		return reg in self.needed
 
@@ -37,15 +40,12 @@ class InstrSeq:
 		self.modified.remove(reg)
 
 	def addStatements(self, seq):
-		try:
-			statements = seq.statements
-		except:			
-			if type(seq) == str:
-				statements = [seq]
-			else:
-				statements = seq
-
+		statements = _statementsTypeCheck(seq)
 		self.statements += statements
+
+	def prependStatement(self, seq):
+		statements = _statementsTypeCheck(seq)
+		self.statements = statements + self.statements
 
 	def append(self, *seqs):
 		for seq in seqs:
@@ -55,9 +55,9 @@ class InstrSeq:
 
 	def addStackInstrs(self, reg):
 		self.statements = (
-			saveText(reg) + 
+			[saveText(reg)] + 
 			self.statements + 
-			restoreText(reg)
+			[restoreText(reg)]
 		)
 
 	def preserveReg(self, reg):
@@ -93,23 +93,25 @@ class InstrSeq:
 def parallelSeqs(*seqs):
 	result = InstrSeq()
 	for seq in seqs:
-		pass
+		result.addStatements(seq)
+		try:
+			result.addNeeded(seq.needed)
+			result.addModified(seq.modified)
+		except:
+			pass
+	# print(result.statements)
+	# return result
 
+def _statementsTypeCheck(seq):
+	try:
+		statements = seq.statements
+	except:			
+		if type(seq) == str:
+			statements = [seq]
+		else:
+			statements = seq
 
-def appendInstrSeqs(*seqs):
-	result = InstrSeq()
-	for seq in seqs:
-		result.needed.update(
-			seq.needed.difference(
-				result.modified))
-
-		result.modified.update(seq.modified)
-
-		result.statements += seq.statements
-	return result
-
-
-
+	return statements
 
 ###
 

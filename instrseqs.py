@@ -1,6 +1,7 @@
-from instructions import InstrSeq
+from instructions import *
 from ctext import *
 from registers import *
+from minorseqs import *
 
 # instructions
 
@@ -35,6 +36,47 @@ class IfTestSeq(InstrSeq):
 		instr = ifTestText(label)
 		super().__init__([val], [], [instr])
 
+class IfSeq(InstrSeq):
+	def __init__(self, compiledCode, labels):
+		super().__init__()
+
+		testCode, thenCode, elseCode = compiledCode
+		self.append(testCode)
+		# print(self.statements)
+		# print(self.needed)
+		# print(self.modified)
+
+		trueLabel, falseLabel, afterIfLabel = labels
+
+		# does the test statement go with the test code 
+		# or the branches code? it needs val, but we're 
+		# given that testCode targets val
+		testGotoTrue = ifTestGotoText(trueLabel)
+		# print(testGotoTrue)
+
+		trueBranch, falseBranch, afterIfBranch = (
+			BranchSeq(label) for label in labels)
+
+		# print(trueBranch)
+		# print(falseBranch)
+		# print(afterIfBranch)
+
+		# how is this appending to self?
+		branchesCode = parallelSeqs(
+			testGotoTrue, 
+			falseBranch, 
+			elseCode, 
+			trueBranch, 
+			thenCode, 
+			afterIfBranch
+		)
+
+		# print(branchesCode)
+
+		# self.preserving([env, cont], branchesCode)
+		# print(self.statements)
+			
+
 ###
 
 class LambdaSeq(InstrSeq):
@@ -50,27 +92,16 @@ class LambdaSeq(InstrSeq):
 
 
 
-class IfSeq(InstrSeq):
-	def __init__(self, compiledCode, labels):
-		testCode, thenCode, elseCode = compiledCode
-		trueLabel, falseLabel, afterIfLabel = labels
-
-		testGoto = ifTestGotoText(trueBranch)
-
-		trueBranch, falseBranch, afterIfBranch = (
-			branchText(label) for label in labels)
 
 
-
-
-
-
+###
 
 class AssDefSeq(InstrSeq):
 	def __init__(self, variable, valueCode, target, linkage):
 		super().__init__()
 		self.append(valueCode)
 		cmdSeq = AssDefCmdSeq(self.cmd, variable, target)
+		# leave ass/def val as return val
 		self.preserving([env], cmdSeq)
 		self.endWithLink(linkage)
 
