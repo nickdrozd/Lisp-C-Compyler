@@ -8,6 +8,10 @@ def makeIfLabels():
 	'trueBranch, falseBranch, afterIf'
 	return [makeLabel(label) for label in ifBranches]
 
+def makeLambdaLabels():
+	'funcEntry, afterLambda'
+	return [makeLabel(label) for label in lambdaBranches]
+
 def branchesAndInfos(labels):
 	branches = [makeLabel(label) for label in labels]
 	infos = [labelInfo(branch) for branch in branches]

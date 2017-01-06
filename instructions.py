@@ -65,6 +65,19 @@ class InstrSeq:
 		self.removeModified(reg)
 		self.addStackInstrs(reg)
 
+	def joinParallelSeqs(self, *seqs):
+		result = InstrSeq()
+		for seq in seqs:
+			result.addStatements(seq)
+			try:
+				result.addNeeded(seq.needed)
+				result.addModified(seq.modified)
+			except:
+				pass
+		# print(result.statements)
+		return result
+		
+
 	def preserving(self, regs, seq):
 		for reg in regs:
 			if self.modifies(reg) and seq.needs(reg):
@@ -90,17 +103,17 @@ class InstrSeq:
 
 
 
-def parallelSeqs(*seqs):
-	result = InstrSeq()
-	for seq in seqs:
-		result.addStatements(seq)
-		try:
-			result.addNeeded(seq.needed)
-			result.addModified(seq.modified)
-		except:
-			pass
-	# print(result.statements)
-	# return result
+# def parallelSeqs(*seqs):
+# 	result = InstrSeq()
+# 	for seq in seqs:
+# 		result.addStatements(seq)
+# 		try:
+# 			result.addNeeded(seq.needed)
+# 			result.addModified(seq.modified)
+# 		except:
+# 			pass
+# 	# print(result.statements)
+# 	return result
 
 def _statementsTypeCheck(seq):
 	try:

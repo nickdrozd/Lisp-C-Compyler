@@ -32,7 +32,9 @@ restoreText = stackText('restore')
 
 # labels, branches, gotos
 
-ifBranches = ('TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF')
+ifBranches = 'TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF'
+lambdaBranches = 'ENTRY', 'AFTER_LAMBDA'
+
 
 def gotoText(label):
 	return 'goto {};'.format(label)

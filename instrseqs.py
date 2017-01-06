@@ -62,29 +62,42 @@ class IfSeq(InstrSeq):
 		# print(afterIfBranch)
 
 		# how is this appending to self?
-		branchesCode = parallelSeqs(
+		# branchesCode = parallelSeqs(
+		# 	testGotoTrue, 
+		# 	falseBranch, 
+		# 	elseCode, 
+		# 	trueBranch, 
+		# 	thenCode, 
+		# 	afterIfBranch
+		# )
+
+		branchesCode = self.joinParallelSeqs(
 			testGotoTrue, 
 			falseBranch, 
 			elseCode, 
 			trueBranch, 
 			thenCode, 
-			afterIfBranch
+			afterIfBranch			
 		)
 
 		# print(branchesCode)
 
 		# self.preserving([env, cont], branchesCode)
+		# self.preserving([env, cont], parallelSeqs(
+		# 	testGotoTrue, 
+		# 	falseBranch, 
+		# 	elseCode, 
+		# 	trueBranch, 
+		# 	thenCode, 
+		# 	afterIfBranch
+		# ))
 		# print(self.statements)
 			
 
 ###
 
-class LambdaSeq(InstrSeq):
-	def __init__(self, expr, target):
-		# TODO: incorporate all lambda stuff here?
-		instr = makeLambdaText(expr, target)
-		super().__init__([env], [target], [instr])
-
+# class LambdaSeq(InstrSeq):
+# 	def __init__()
 
 
 

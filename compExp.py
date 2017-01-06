@@ -110,6 +110,7 @@ def compIf(expr, target=val, linkage=nex):
 	# it would be nice to push these into IfInstr, 
 	# but afterIf is needed for compiledCode (thenLink)
 	labels = makeIfLabels()
+	print(labels)
 	trueBranch, falseBranch, afterIf = labels
 	thenLink = afterIf if linkage == nex else linkage
 
@@ -155,7 +156,7 @@ def compLambda(expr, target=val, linkage=nex):
 	labels = ('ENTRY', 'AFTER_LAMBDA')
 
 	branches, infos = branchesAndInfos(labels)
-	funcEntry, afterLambda = branches	
+	funcEntry, afterLambda = branches
 	funcEntryInfo, afterLambdaInfo = infos
 
 	###
@@ -171,6 +172,20 @@ def compLambda(expr, target=val, linkage=nex):
 	appended = appendInstrSeqs(tackedOn, afterLambdaInfo)
 
 	return appended
+
+
+def compLambda(expr, target=val, linkage=nex):
+	_, params, *body = expr
+	lispParams = schemify(params)
+
+	funcEntry, afterLambda = makeLambdaLabels()
+	funcEntryBranch, afterLambdaBranch = (
+		BranchSeq(label for label in labels))
+
+	lambdaLink = afterLambda if linkage == nex else linkage
+
+
+
 
 
 def compLambdaBody(expr, funcEntryInfo):
