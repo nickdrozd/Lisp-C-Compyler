@@ -2,6 +2,7 @@ from instructions import *
 from ctext import *
 from registers import *
 from minorseqs import *
+from labels import *
 
 # instructions
 
@@ -96,16 +97,23 @@ class IfSeq(InstrSeq):
 
 ###
 
-# class LambdaSeq(InstrSeq):
-# 	def __init__()
+class LambdaSeq(InstrSeq):
+	def __init__(self, target, linkage, lispParams, bodySeq):
+		# labels
+		labels, branches = makeLambdaLabels()
+		funcEntry, afterLambda = labels
+		funcEntryBranch, afterLambdaBranch = branches
 
+		lambdaLink = afterLambda if linkage == nex else linkage
 
-
-
-
-
-
-
+		compSeq = LambdaCompSeq(target, funcEntry, lambdaLink)
+		entrySeq = LambdaEntrySeq(funcEntry, lispParams)
+		print('type:', type(bodySeq))
+		entrySeq.addStatements(bodySeq)
+		super().__init__()
+		self.append(compSeq)
+		self.append(entrySeq)
+		self.append(afterLambdaBranch)
 
 ###
 

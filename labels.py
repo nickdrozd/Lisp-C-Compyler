@@ -1,24 +1,18 @@
-from ctext import *
+from minorseqs import BranchSeq
 
 # global counters
 labels = []
 
-def makeIfLabels():
-	'trueBranch, falseBranch, afterIf'
-	return [makeLabel(label) for label in ifBranches]
+def labelsAndBranches(labelNames):
+	labels = [makeLabel(label) for label in labelNames]
+	branches = [BranchSeq(label) for label in labels]
+	return labels, branches
 
-def makeLambdaLabels():
-	'funcEntry, afterLambda'
-	return [makeLabel(label) for label in lambdaBranches]
+IfLabelNames = 'trueBranch', 'falseBranch', 'afterIf'
+LambdaLabelNames = 'funcEntry', 'afterLambda'
 
-def branchesAndInfos(labels):
-	branches = [makeLabel(label) for label in labels]
-	infos = [labelInfo(branch) for branch in branches]
-	return (branches, infos)
-
-def labelInfo(label):
-	print_info = 'print_info("%(label)s");' % locals()
-	return (label + ':' + ' ' + print_info)
+makeIfLabels = lambda: labelsAndBranches(IfLabelNames)
+makeLambdaLabels = lambda: labelsAndBranches(LambdaLabelNames)
 
 # label numbering
 
@@ -50,4 +44,10 @@ def makeLabel(name):
 
 # different numberings for different strings?
 # that would make the code easier to follow
+
+# legacy
+def branchesAndInfos(labels):
+	branches = [makeLabel(label) for label in labels]
+	infos = [labelInfo(branch) for branch in branches]
+	return (branches, infos)
 

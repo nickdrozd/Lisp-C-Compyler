@@ -75,37 +75,6 @@ def compAssDef(seqType):
 compAss = compAssDef(AssSeq)
 compDef = compAssDef(DefSeq)
 
-
-# def compIf(expr, target=val, linkage=nex):
-# 	labels = ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF']
-
-# 	branches, infos = branchesAndInfos(labels)
-
-# 	[trueBranch, falseBranch, afterIf] = branches
-# 	[trueBranchInfo, falseBranchInfo, afterIfInfo] = infos
-
-# 	###
-	
-# 	thenLink = afterIf if linkage == nex else linkage
-
-# 	(_, ifTest, ifThen, ifElse) = expr
-
-# 	testCode = compExp(ifTest, val, nex)
-# 	thenCode = compExp(ifThen, target, linkage)
-# 	elseCode = compExp(ifElse, target, thenLink)
-
-# 	testGotoSeq = ifTestInstr(trueBranch)
-
-# 	thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
-# 	elseCodeLabeled = appendInstrSeqs(falseBranchInfo, elseCode)
-
-# 	elseThenSeq = parallelInstrSeqs(elseCodeLabeled, thenCodeLabeled)
-# 	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, elseThenSeq, afterIfInfo)
-
-# 	preserved = [env, cont]
-# 	return preserving(preserved, testCode, testGotosThenElseSeq)
-
-
 def compIf(expr, target=val, linkage=nex):
 	# it would be nice to push these into IfInstr, 
 	# but afterIf is needed for compiledCode (thenLink)
@@ -125,86 +94,31 @@ def compIf(expr, target=val, linkage=nex):
 			]
 	]
 
-	# print('compIf')
-	# print('test', compiledCode[0].statements)
-	# print('then', compiledCode[1].statements)
-	# print('else', compiledCode[2].statements)
-
 	return IfSeq(compiledCode, labels)
-
-
-
-
 
 def compBegin(expr, target=val, linkage=nex):
 	_, *seq = expr
 	return compSeq(seq, target, linkage)
 
-
 def compSeq(seq, target=val, linkage=nex):
-	first, *rest = seq
-	if not rest:
-		return compExp(first, target, linkage)
-	else:
-		compFirst = compExp(first, target, nex)
-		compRest = compSeq(rest, target, linkage)
-		preserved = [env, cont]
-		return preserving(preserved, compFirst, compRest)
-
-
-def compLambda(expr, target=val, linkage=nex):
-	labels = ('ENTRY', 'AFTER_LAMBDA')
-
-	branches, infos = branchesAndInfos(labels)
-	funcEntry, afterLambda = branches
-	funcEntryInfo, afterLambdaInfo = infos
-
-	###
-
-	lambdaLink = afterLambda if linkage == nex else linkage
-	lambdaBody = compLambdaBody(expr, funcEntryInfo)
-	
-	instr = "%(target)s = COMPOBJ(_%(funcEntry)s, env);" % locals()
-	instrSeq = makeInstrSeq([env], [target], [instr])
-	instrLinked = endWithLink(lambdaLink, instrSeq)
-
-	tackedOn = tackOnInstrSeq(instrLinked, lambdaBody)
-	appended = appendInstrSeqs(tackedOn, afterLambdaInfo)
-
-	return appended
-
+	returnSeq = InstrSeq()
+	regs = [env, cont]
+	for exp in reversed(seq):
+		comp = compExp(exp, target, linkage)
+		returnSeq.preserving(regs, comp)
+	return returnSeq
 
 def compLambda(expr, target=val, linkage=nex):
 	_, params, *body = expr
 	lispParams = schemify(params)
 
-	funcEntry, afterLambda = makeLambdaLabels()
-	funcEntryBranch, afterLambdaBranch = (
-		BranchSeq(label for label in labels))
-
-	lambdaLink = afterLambda if linkage == nex else linkage
-
-
-
-
-
-def compLambdaBody(expr, funcEntryInfo):
-	_, params, *body = expr
-	lispParams = schemify(params)
-
-	assignFuncEnv = "env = COMPENVOBJ(func);"
-	parseParams = 'unev = parse("%(lispParams)s\\n");' % locals()
-	extendFuncEnv = "env = extendEnv(unev, arglist, env);" # %(params)s ?
-
-	instrList = [funcEntryInfo, assignFuncEnv, 
-					parseParams, extendFuncEnv]
-
-	instrSeq = makeInstrSeq([env, func, arglist], 
-				[env], instrList)
 	bodySeq = compSeq(body, val, ret)
-	appended = appendInstrSeqs(instrSeq, bodySeq)
+	print('type:', type(bodySeq))
 
-	return appended
+	return LambdaSeq(target, linkage, lispParams, bodySeq)
+
+
+
 
 
 def compApp(expr, target=val, linkage=nex):

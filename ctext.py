@@ -54,7 +54,10 @@ branchText = lambda label: labelDestText(label) + ' ' + infoText(label)
 # lambda
 
 makeLambdaText = assignText('{} = COMPOBJ(_{}, env);')
-assFuncEnvText = 'env = COMPENVOBJ(func);'
+
+funcEnvText = 'env = COMPENVOBJ(func);'
+parseParamsText = lambda params: 'unev = parse("{}\n");'.format(params)
+extendEnvText = 'env = extendEnv(unev, arglist, env);'
 
 # arglist
 
