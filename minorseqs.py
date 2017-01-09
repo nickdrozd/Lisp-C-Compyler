@@ -20,7 +20,7 @@ class BranchSeq(LabelSeq):
 
 # lambda
 
-class LambdaCompSeq(InstrSeq):
+class LambdaMakeSeq(InstrSeq):
 	def __init__(self, target, entryLabel, lambdaLink):
 		needs = env, 
 		mods = target, 
@@ -31,7 +31,7 @@ class LambdaCompSeq(InstrSeq):
 		super().__init__(needs, mods, statements)
 
 class LambdaEntrySeq(InstrSeq):
-	def __init__(self, entryLabel, lispParams):
+	def __init__(self, entryLabel, lispParams, bodySeq):
 		needs = func, arglist
 		mods = env, unev
 		statements = [

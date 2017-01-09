@@ -106,14 +106,12 @@ class LambdaSeq(InstrSeq):
 
 		lambdaLink = afterLambda if linkage == nex else linkage
 
-		compSeq = LambdaCompSeq(target, funcEntry, lambdaLink)
-		entrySeq = LambdaEntrySeq(funcEntry, lispParams)
-		print('type:', type(bodySeq))
-		entrySeq.addStatements(bodySeq)
+		makeSeq = LambdaMakeSeq(target, funcEntry, lambdaLink)
+		entrySeq = LambdaEntrySeq(funcEntry, lispParams, bodySeq)
+
 		super().__init__()
-		self.append(compSeq)
-		self.append(entrySeq)
-		self.append(afterLambdaBranch)
+		for seq in makeSeq, entrySeq, afterLambdaBranch:
+			self.append(seq)
 
 ###
 
