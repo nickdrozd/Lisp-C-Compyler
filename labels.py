@@ -1,15 +1,17 @@
-# labels
+from instrseqs import BranchSeq
 
 labels = []
 
-def branchesAndInfos(labels):
-	branches = [makeLabel(label) for label in labels]
-	infos = [labelInfo(branch) for branch in branches]
-	return (branches, infos)
+def labelsAndBranches(labelNames):
+        labels = [makeLabel(label) for label in labelNames]
+        branches = [BranchSeq(label) for label in labels]
+        return labels, branches
 
-def labelInfo(label):
-	print_info = 'print_info("%(label)s");' % locals()
-	return (label + ':' + ' ' + print_info)
+ifLabelNames = 'TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF'
+lambdaLabelNames = 'FUNC_ENTRY', 'AFTER_LAMBDA'
+
+ifLabelsBranches = lambda: labelsAndBranches(ifLabelNames)
+lambdaLabelsBranches = lambda: labelsAndBranches(lambdaLabelNames)
 
 # label numbering
 

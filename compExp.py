@@ -15,10 +15,12 @@ from primitives import primitives
 from instructions import *
 from linkage import *
 
-from labels import branchesAndInfos
+from labels import *
 from parse import schemify
 from macros import transformMacros
 from llh import *
+
+from instrseqs import *
 
 #----------------------------------#
 
@@ -92,34 +94,62 @@ compDef = compAssDef('defineVar')
 
 
 def compIf(expr, target=val, linkage=nex):
-	labels = ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF']
+	_, ifTest, ifThen, ifElse = expr
 
-	branches, infos = branchesAndInfos(labels)
+	labels, branches = ifLabelsBranches()
+	trueLabel, falseLabel, afterIfLabel = labels
+	trueBranch, falseBranch, afterIfBranch = branches
 
-	[trueBranch, falseBranch, afterIf] = branches
-	[trueBranchInfo, falseBranchInfo, afterIfInfo] = infos
-	
-	thenLink = afterIf if linkage == nex else linkage
-
-	(_, ifTest, ifThen, ifElse) = expr
+	thenLink = afterIfLabel if linkage == nex else linkage
 
 	testCode = compExp(ifTest, val, nex)
 	thenCode = compExp(ifThen, target, linkage)
 	elseCode = compExp(ifElse, target, thenLink)
 
-	isTrueInstr = "if (isTrue(val)) "
-	gotoTrueInstr = "goto %(trueBranch)s;" % locals()
-	instrList = [isTrueInstr + gotoTrueInstr]
-	testGotoSeq = makeInstrSeq([val], [], instrList)
+	gotoTrueSeq = TestGotoSeq(trueLabel)
 
-	thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
-	elseCodeLabeled = appendInstrSeqs(falseBranchInfo, elseCode)
+	testCodeGoto = appendInstrSeqs(testCode, gotoTrueSeq) 
+	thenCodeLabeled = appendInstrSeqs(trueBranch, thenCode)
+	elseCodeLabeled = appendInstrSeqs(falseBranch, elseCode)
 
-	elseThenSeq = parallelInstrSeqs(elseCodeLabeled, thenCodeLabeled)
-	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, elseThenSeq, afterIfInfo)
+	return preserving([env, cont],
+		testCodeGoto, 
+		appendInstrSeqs(
+			parallelInstrSeqs(
+				elseCodeLabeled, 
+				thenCodeLabeled), 
+			afterIfBranch))
 
-	preserved = [env, cont]
-	return preserving(preserved, testCode, testGotosThenElseSeq)
+
+# def compIf(expr, target=val, linkage=nex):
+# 	labels = ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF']
+
+# 	branches, infos = labelsAndBranches(labels)
+
+# 	[trueBranch, falseBranch, afterIf] = branches
+# 	[trueBranchInfo, falseBranchInfo, afterIfInfo] = infos
+	
+# 	thenLink = afterIf if linkage == nex else linkage
+
+# 	(_, ifTest, ifThen, ifElse) = expr
+
+# 	testCode = compExp(ifTest, val, nex)
+# 	thenCode = compExp(ifThen, target, linkage)
+# 	elseCode = compExp(ifElse, target, thenLink)
+
+# 	isTrueInstr = "if (isTrue(val)) "
+# 	gotoTrueInstr = "goto %(trueBranch)s;" % locals()
+# 	instrList = [isTrueInstr + gotoTrueInstr]
+# 	testGotoSeq = makeInstrSeq([val], [], instrList)
+
+# 	thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
+# 	elseCodeLabeled = appendInstrSeqs(falseBranchInfo, elseCode)
+
+# 	elseThenSeq = parallelInstrSeqs(elseCodeLabeled, thenCodeLabeled)
+# 	testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, elseThenSeq, afterIfInfo)
+
+# 	preserved = [env, cont]
+# 	return preserving(preserved, testCode, testGotosThenElseSeq)
 
 
 def compBegin(expr, target=val, linkage=nex):
@@ -128,20 +158,17 @@ def compBegin(expr, target=val, linkage=nex):
 
 
 def compSeq(seq, target=val, linkage=nex):
-	first, *rest = seq
-	if not rest:
-		return compExp(first, target, linkage)
-	else:
-		compFirst = compExp(first, target, nex)
-		compRest = compSeq(rest, target, linkage)
-		preserved = [env, cont]
-		return preserving(preserved, compFirst, compRest)
+    returnSeq, regs = emptyInstrSeq, [env, cont]
+    for exp in reversed(seq):
+        returnSeq = preserving(regs, 
+        	compExp(exp, target, linkage))
+    return returnSeq
 
 
 def compLambda(expr, target=val, linkage=nex):
 	labels = ('ENTRY', 'AFTER_LAMBDA')
 
-	branches, infos = branchesAndInfos(labels)
+	branches, infos = labelsAndBranches(labels)
 	funcEntry, afterLambda = branches	
 	funcEntryInfo, afterLambdaInfo = infos
 
@@ -242,7 +269,7 @@ def compFuncCall(target, linkage):
 		'COMPILED', 'AFTER_CALL'
 	)
 
-	branches, infos = branchesAndInfos(labels)
+	branches, infos = labelsAndBranches(labels)
 
 	(primitiveBranch, compoundBranch, 
 	 	compiledBranch, afterCall) = branches
@@ -322,7 +349,7 @@ def compFuncApp(target, linkage, funcType):
 	# target is func, eg in ((f 4) 5)
 	elif not valTarg and not retLink:
 		labels = ('FUNC_RETURN',)
-		branches, infos = branchesAndInfos(labels)
+		branches, infos = labelsAndBranches(labels)
 		(funcReturn,) = branches
 		(funcReturnInfo,) = infos
 

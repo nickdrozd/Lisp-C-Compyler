@@ -39,8 +39,8 @@ exprSeq = [
 	# '(define x 5)',
 	# '(def x 5)',
 	# '(def (f x) (+ x 5))',
-	'(set! (f x) (+ x 5))',
-	# '(if a b c)',
+	# '(set! (f x) (+ x 5))',
+	'(if a b c)',
 	# '(and a b c)'
 	# '(or a b c)',
 	# '((addn 4) 5)',
