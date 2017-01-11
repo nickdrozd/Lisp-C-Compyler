@@ -31,7 +31,22 @@ QuoteSeq = SimpleSeq(parseText, [])
 def IfTestSeq(label):
 	return makeInstrSeq([val], [], [ifTestText(label)])
 
+###
 
+def LambdaMakeSeq(target, entryLabel, lambdaLink):
+	return makeInstrSeq([env], [target], [
+			makeLambdaText(entryLabel, target), 
+			gotoText(lambdaLink)	
+		])
+
+def LambdaEntrySeq(lispParams, bodySeq):
+	stmnts = [
+		funcEnvText, 
+		parseParamsText(lispParams), 
+		extendEnvText
+	] + statements(bodySeq)
+
+	return makeInstrSeq([func, arglist], [env, unev], stmnts)
 
 
 

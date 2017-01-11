@@ -160,8 +160,10 @@ def compBegin(expr, target=val, linkage=nex):
 def compSeq(seq, target=val, linkage=nex):
     returnSeq, regs = emptyInstrSeq, [env, cont]
     for exp in reversed(seq):
-        returnSeq = preserving(regs, 
-        	compExp(exp, target, linkage))
+        returnSeq = preserving(
+        	regs, 
+        	compExp(exp, target, linkage), 
+        	returnSeq)
     return returnSeq
 
 
@@ -183,6 +185,29 @@ def compLambda(expr, target=val, linkage=nex):
 	appended = appendInstrSeqs(tackedOn, afterLambdaInfo)
 
 	return appended
+
+
+def compLambda(expr, target=val, linkage=nex):
+	_, params, *body = expr
+	lispParams = schemify(params)
+
+	labels, branches = lambdaLabelsBranches()
+	funcEntry, afterLambda = labels	
+	funcEntryBranch, afterLambdaBranch = branches
+
+	lambdaLink = afterLambda if linkage == nex else linkage
+
+	bodySeq = compSeq(body, val, ret)
+	
+	makeLambdaSeq = LambdaMakeSeq(target, funcEntry, lambdaLink)
+	funcEntrySeq = LambdaEntrySeq(lispParams, bodySeq)
+
+	return appendInstrSeqs(
+		makeLambdaSeq, 
+		funcEntryBranch, 
+		funcEntrySeq, 
+		afterLambdaBranch		
+	)
 
 
 def compLambdaBody(expr, funcEntryInfo):
