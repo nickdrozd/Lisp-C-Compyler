@@ -1,19 +1,21 @@
+from ctext import *
+
 # instructions
 
-def makeInstrSeq(needs, modifies, statements):
-	return [needs, modifies, statements]
+def makeInstrSeq(needs, modifies, stmnts):
+	return [set(needs), set(modifies), stmnts]
 
 emptyInstrSeq = makeInstrSeq([],[],[])
 
 def registersNeeded(seq):
 	if type(seq) == str:
-		return []
+		return set()
 	else:
 		return seq[0]
 
 def registersModified(seq):
 	if type(seq) == str:
-		return []
+		return set()
 	else:
 		return seq[1]
 
@@ -79,26 +81,15 @@ def parallelInstrSeqs(seq1, seq2):
 
 
 def preserving(regs, seq1, seq2):
-	if len(regs) == 0:
-		return appendInstrSeqs(seq1, seq2)
-	else:
-		firstReg = regs[0]
-		restRegs = regs[1:]
-		needsFirst = needsRegister(seq2, firstReg)
-		modifiesFirst = modifiesRegister(seq1, firstReg)
-		if needsFirst and modifiesFirst:
-			save = "save(%(firstReg)s);" % locals()
-			seq1Statements = statements(seq1)
-			restore = "restore(%(firstReg)s);" % locals()
-			seq1PresInstr = [save] + seq1Statements + [restore]
-
-			firstSeq1Needs = listUnion([firstReg], registersNeeded(seq1))
-			firstSeq1Mods = listDiff(registersModified(seq1), [firstReg])
-
-			presInstrSeq = makeInstrSeq(firstSeq1Needs, firstSeq1Mods, seq1PresInstr)
-			return preserving(restRegs, presInstrSeq, seq2)
-		else:
-			return preserving(restRegs, seq1, seq2) 
+	needed = registersNeeded(seq1)
+	modified = registersModified(seq2)
+	stmnts = statements(seq1)
+	for reg in regs:
+		if needsRegister(seq2, reg) and modifiesRegister(seq1, reg):
+			stmnts = [saveText(reg)] + stmnts + restoreText(reg)
+			needed.add(reg)
+			modified.remove(reg)	
+	return makeInstrSeq(needed, modified, stmnts + statements(seq2))
 
 
 def listUnion(s1, s2):
