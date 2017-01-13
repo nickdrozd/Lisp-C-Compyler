@@ -1,19 +1,24 @@
 from instrseqs import BranchSeq
 
-labels = []
+# particular label/branch sets
+
+ifLabelNames = 'TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF'
+lambdaLabelNames = 'FUNC_ENTRY', 'AFTER_LAMBDA'
+
+def ifLabelsBranches():
+	return labelsAndBranches(ifLabelNames)
+
+def lambdaLabelsBranches():
+	return labelsAndBranches(lambdaLabelNames)
 
 def labelsAndBranches(labelNames):
         labels = [makeLabel(label) for label in labelNames]
         branches = [BranchSeq(label) for label in labels]
         return labels, branches
 
-ifLabelNames = 'TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF'
-lambdaLabelNames = 'FUNC_ENTRY', 'AFTER_LAMBDA'
-
-ifLabelsBranches = lambda: labelsAndBranches(ifLabelNames)
-lambdaLabelsBranches = lambda: labelsAndBranches(lambdaLabelNames)
-
 # label numbering
+
+labels = []
 
 label_counts = {}
 
