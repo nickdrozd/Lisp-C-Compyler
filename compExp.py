@@ -16,7 +16,7 @@ from instructions import *
 from linkage import *
 
 from labels import *
-from parse import schemify
+from parse import schemify, parse
 from macros import transformMacros
 from llh import *
 
@@ -39,13 +39,13 @@ def compExp(expr, target=val, linkage=nex):
 
 def compNum(expr, target, linkage):
 	instr = "%(target)s = NUMOBJ(%(expr)s);" % locals()
-	instrSeq = makeInstrSeq([], [target], [instr])
+	instrSeq = InstrSeq([], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
 
 def compVar(expr, target, linkage):
 	instr = "%(target)s = lookup(NAMEOBJ(\"%(expr)s\"), env);" % locals()
-	instrSeq = makeInstrSeq([env], [target], [instr])
+	instrSeq = InstrSeq([env], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
 
@@ -54,7 +54,7 @@ def compQuote(expr, target, linkage):
 	lispText = schemify(text)
 
 	instr = '%(target)s = parse("%(lispText)s\\n");' % locals()
-	instrSeq = makeInstrSeq([], [target], [instr])
+	instrSeq = InstrSeq([], [target], [instr])
 	return endWithLink(linkage, instrSeq)
 
 
@@ -81,7 +81,7 @@ def compAssDef(CFunc):
 
 		# leave ass/def val as return val
 		instr = CFunc + "(NAMEOBJ(\"%(variable)s\"), val, env);" % locals()
-		instrSeq = makeInstrSeq([env, val], [target], [instr])
+		instrSeq = InstrSeq([env, val], [target], [instr])
 
 		preserved = preserving([env], valueCode, instrSeq)
 		return endWithLink(linkage, preserved)
@@ -112,6 +112,8 @@ def compIf(expr, target=val, linkage=nex):
 	thenCodeLabeled = appendInstrSeqs(trueBranch, thenCode)
 	elseCodeLabeled = appendInstrSeqs(falseBranch, elseCode)
 
+	# is afterIfBranch needed when linkage == ret?
+
 	return preserving([env, cont],
 		testCodeGoto, 
 		appendInstrSeqs(
@@ -140,7 +142,7 @@ def compIf(expr, target=val, linkage=nex):
 # 	isTrueInstr = "if (isTrue(val)) "
 # 	gotoTrueInstr = "goto %(trueBranch)s;" % locals()
 # 	instrList = [isTrueInstr + gotoTrueInstr]
-# 	testGotoSeq = makeInstrSeq([val], [], instrList)
+# 	testGotoSeq = InstrSeq([val], [], instrList)
 
 # 	thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
 # 	elseCodeLabeled = appendInstrSeqs(falseBranchInfo, elseCode)
@@ -158,7 +160,7 @@ def compBegin(expr, target=val, linkage=nex):
 
 
 def compSeq(seq, target=val, linkage=nex):
-    returnSeq, regs = emptyInstrSeq, [env, cont]
+    returnSeq, regs = InstrSeq(), [env, cont]
     for exp in reversed(seq):
         returnSeq = preserving(
         	regs, 
@@ -167,24 +169,24 @@ def compSeq(seq, target=val, linkage=nex):
     return returnSeq
 
 
-def compLambda(expr, target=val, linkage=nex):
-	labels = ('ENTRY', 'AFTER_LAMBDA')
+# def compLambda(expr, target=val, linkage=nex):
+# 	labels = ('ENTRY', 'AFTER_LAMBDA')
 
-	branches, infos = labelsAndBranches(labels)
-	funcEntry, afterLambda = branches	
-	funcEntryInfo, afterLambdaInfo = infos
+# 	branches, infos = labelsAndBranches(labels)
+# 	funcEntry, afterLambda = branches	
+# 	funcEntryInfo, afterLambdaInfo = infos
 
-	lambdaLink = afterLambda if linkage == nex else linkage
-	lambdaBody = compLambdaBody(expr, funcEntryInfo)
+# 	lambdaLink = afterLambda if linkage == nex else linkage
+# 	lambdaBody = compLambdaBody(expr, funcEntryInfo)
 	
-	instr = "%(target)s = COMPOBJ(_%(funcEntry)s, env);" % locals()
-	instrSeq = makeInstrSeq([env], [target], [instr])
+# 	instr = "%(target)s = COMPOBJ(_%(funcEntry)s, env);" % locals()
+# 	instrSeq = InstrSeq([env], [target], [instr])
 
-	instrLinked = endWithLink(lambdaLink, instrSeq)
-	tackedOn = tackOnInstrSeq(instrLinked, lambdaBody)
-	appended = appendInstrSeqs(tackedOn, afterLambdaInfo)
+# 	instrLinked = endWithLink(lambdaLink, instrSeq)
+# 	tackedOn = tackOnInstrSeq(instrLinked, lambdaBody)
+# 	appended = appendInstrSeqs(tackedOn, afterLambdaInfo)
 
-	return appended
+# 	return appended
 
 
 def compLambda(expr, target=val, linkage=nex):
@@ -210,23 +212,23 @@ def compLambda(expr, target=val, linkage=nex):
 	)
 
 
-def compLambdaBody(expr, funcEntryInfo):
-	_, params, *body = expr
-	lispParams = schemify(params)
+# def compLambdaBody(expr, funcEntryInfo):
+# 	_, params, *body = expr
+# 	lispParams = schemify(params)
 
-	assignFuncEnv = "env = COMPENVOBJ(func);"
-	parseParams = 'unev = parse("%(lispParams)s\\n");' % locals()
-	extendFuncEnv = "env = extendEnv(unev, arglist, env);" # %(params)s ?
+# 	assignFuncEnv = "env = COMPENVOBJ(func);"
+# 	parseParams = 'unev = parse("%(lispParams)s\\n");' % locals()
+# 	extendFuncEnv = "env = extendEnv(unev, arglist, env);" # %(params)s ?
 
-	instrList = [funcEntryInfo, assignFuncEnv, 
-					parseParams, extendFuncEnv]
+# 	instrList = [funcEntryInfo, assignFuncEnv, 
+# 					parseParams, extendFuncEnv]
 
-	instrSeq = makeInstrSeq([env, func, arglist], 
-				[env], instrList)
-	bodySeq = compSeq(body, val, ret)
-	appended = appendInstrSeqs(instrSeq, bodySeq)
+# 	instrSeq = InstrSeq([env, func, arglist], 
+# 				[env], instrList)
+# 	bodySeq = compSeq(body, val, ret)
+# 	appended = appendInstrSeqs(instrSeq, bodySeq)
 
-	return appended
+# 	return appended
 
 
 def compApp(expr, target=val, linkage=nex):
@@ -239,7 +241,7 @@ def compApp(expr, target=val, linkage=nex):
 
 	if function in primitives:
 		primCall = "%(target)s = applyPrimitive(func, arglist);" % locals()
-		primCallSeq = makeInstrSeq([func, arglist], [target], [primCall])
+		primCallSeq = InstrSeq([func, arglist], [target], [primCall])
 		funcCallCode = endWithLink(linkage, primCallSeq)
 	else:
 		funcCallCode = compFuncCall(target, linkage)
@@ -256,11 +258,11 @@ def constructArglist(argCodes):
 
 	if not argCodes:
 		instr = "arglist = NULLOBJ;"
-		return makeInstrSeq([], [arglist], [instr])
+		return InstrSeq([], [arglist], [instr])
 
 	# else:
 	instr = "arglist = CONS(val, NULLOBJ);"
-	instrSeq = makeInstrSeq([val], [arglist], [instr])
+	instrSeq = InstrSeq([val], [arglist], [instr])
 
 	lastArg, *restArgs = argCodes
 
@@ -276,7 +278,7 @@ def constructArglist(argCodes):
 def codeToGetRestArgs(argCodes):
 	nextArg, *restArgs = argCodes
 	instr = "arglist = CONS(val, arglist);"
-	instrSeq = makeInstrSeq([val, arglist], 
+	instrSeq = InstrSeq([val, arglist], 
 					[arglist], [instr])
 	codeForNextArg = preserving([arglist], 
 							nextArg, instrSeq)
@@ -308,14 +310,14 @@ def compFuncCall(target, linkage):
 		test = "if (%(testString)s(func)) " % locals()
 		goto = "goto %(label)s;" % locals()
 		instrList = [test + goto]
-		return makeInstrSeq([func], [], instrList)
+		return InstrSeq([func], [], instrList)
 
 	testPrimitiveSeq = makeTestGotoSeq('isPrimitive', primitiveBranch)
 	testCompoundSeq = makeTestGotoSeq('isCompound', compoundBranch)
 	testSeqs = appendInstrSeqs(testPrimitiveSeq, testCompoundSeq)
 
 	applyPrimitive = "%(target)s = applyPrimitive(func, arglist);" % locals()
-	applyPrimitiveSeq = makeInstrSeq([func, arglist], 
+	applyPrimitiveSeq = InstrSeq([func, arglist], 
 					[target], [applyPrimitive])
 
 	# calling compFuncApp twice generates two different endLabels
@@ -368,7 +370,7 @@ def compFuncApp(target, linkage, funcType):
 		funcList = compiledList if isCompiled else compoundList
 		instrList = [assignCont] + funcList
 			
-		return makeInstrSeq([func], allRegs, instrList)
+		return InstrSeq([func], allRegs, instrList)
 
 
 	# target is func, eg in ((f 4) 5)
@@ -389,14 +391,14 @@ def compFuncApp(target, linkage, funcType):
 
 		instrList = [assignCont] + funcList + returnList
 
-		return makeInstrSeq([func], allRegs, instrList)
+		return InstrSeq([func], allRegs, instrList)
 
 
 	# this gets called, but I don't understand when
 	elif valTarg and retLink:
 		instrList = compiledList if isCompiled else compoundList
 
-		return makeInstrSeq([func, cont], allRegs, instrList)
+		return InstrSeq([func, cont], allRegs, instrList)
 
 	else:
 		Exception('bad function call', 'compFuncApp')

@@ -11,10 +11,11 @@ compyle(['(define f (lambda () 5))', '(define x (f))']).
 '''
 
 from parse import parse
-from instructions import statements
 from labels import labels
 from library import library
 from compExp import compExp
+from registers import *
+from linkage import *
 
 
 def compyle(exprSeq):
@@ -22,9 +23,10 @@ def compyle(exprSeq):
 	print('\n')
 
 	for expr in exprSeq:
+		print(expr, '\n')
 		parsed = parse(expr)
 		compiled = compExp(parsed)
-		code = statements(compiled)
+		code = compiled.statements
 
 		for line in code:
 			print(line)
@@ -45,11 +47,12 @@ exprSeq = [
 	# '(or a b c)',
 	# '((addn 4) 5)',
 	# '(f 1 2 3 4 5 6 7 8)',
-	'(lambda (x) x)', 
+	# '(lambda (x) x)', 
 	# '(lambda (x) (f x))', 
 	# '((lambda (s) s) (quote (3 4 5)))',
 	# '((lambda s s) 3 4 5)',
-	# '(f)', 
+	# '(if a (lambda (x) b) 5)',
+	'(f)', 
 	# '((f))',
 	# '((f 4))',
 ]

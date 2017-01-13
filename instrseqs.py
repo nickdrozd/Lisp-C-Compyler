@@ -2,12 +2,17 @@ from instructions import *
 from ctext import *
 from registers import *
 from labels import *
+from linkage import endWithLink
 
 # instructions
 
 def LabelSeq(instrText):
 	def Seq(label):
-		return makeInstrSeq([], [], [instrText(label)])
+		instr = instrText(label)
+		return InstrSeq(
+			needed=[],
+			modified=[], 
+			statements=[instr])
 	return Seq
 
 TestGotoSeq = LabelSeq(ifTestGotoText)
@@ -18,7 +23,7 @@ BranchSeq = LabelSeq(branchText)
 def SimpleSeq(instrText, needed):
 	def Seq(expr, target, linkage):
 		instr = instrText(expr)
-		seq = makeInstrSeq(needed, [target], [instr])
+		seq = InstrSeq(needed, [target], [instr])
 		return endWithLink(linkage, seq)
 	return Seq
 
@@ -29,24 +34,25 @@ QuoteSeq = SimpleSeq(parseText, [])
 ###
 
 def IfTestSeq(label):
-	return makeInstrSeq([val], [], [ifTestText(label)])
+	return InstrSeq([val], [], [ifTestText(label)])
 
 ###
 
 def LambdaMakeSeq(target, entryLabel, lambdaLink):
-	return makeInstrSeq([env], [target], [
+	seq = InstrSeq([env], [target], [
 			makeLambdaText(entryLabel, target), 
-			gotoText(lambdaLink)	
 		])
+
+	return endWithLink(lambdaLink, seq)
 
 def LambdaEntrySeq(lispParams, bodySeq):
 	stmnts = [
 		funcEnvText, 
 		parseParamsText(lispParams), 
 		extendEnvText
-	] + statements(bodySeq)
+	] + bodySeq.statements
 
-	return makeInstrSeq([func, arglist], [env, unev], stmnts)
+	return InstrSeq([func, arglist], [env, unev], stmnts)
 
 
 
