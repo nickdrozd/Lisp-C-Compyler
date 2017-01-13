@@ -4,12 +4,15 @@ from instrseqs import BranchSeq
 
 ifLabelNames = 'TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF'
 lambdaLabelNames = 'FUNC_ENTRY', 'AFTER_LAMBDA'
+funcLabelNames = 'PRIMITIVE', 'COMPOUND', 'COMPILED', 'AFTER_CALL'
 
-def ifLabelsBranches():
-	return labelsAndBranches(ifLabelNames)
+def makeLabelsAndBranches(labelNames):
+	return lambda: labelsAndBranches(labelNames)
 
-def lambdaLabelsBranches():
-	return labelsAndBranches(lambdaLabelNames)
+ifLabelsBranches, lambdaLabelsBranches, funcLabelsBranches, = [
+	makeLabelsAndBranches(labelNames) for labelNames in 
+		(ifLabelNames, lambdaLabelNames, funcLabelNames)
+]
 
 def labelsAndBranches(labelNames):
         labels = [makeLabel(label) for label in labelNames]

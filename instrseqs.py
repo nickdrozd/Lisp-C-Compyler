@@ -1,7 +1,7 @@
 from instructions import *
 from ctext import *
 from registers import *
-from labels import *
+# from labels import *
 from linkage import endWithLink
 
 # instructions
@@ -54,7 +54,14 @@ def LambdaEntrySeq(lispParams, bodySeq):
 
 	return InstrSeq([func, arglist], [env, unev], stmnts)
 
+def NullArglSeq():
+	return InstrSeq([], [arglist], [nullArglText])
 
+def ConsValNullSeq():
+	return InstrSeq([val], [arglist], [consValNullText])
+
+def ConsValArglSeq():
+	return InstrSeq([val, arglist], [arglist], consValArglText)
 
 
 ###
