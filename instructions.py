@@ -22,7 +22,7 @@ class InstrSeq:
 		self.statements = (
 			[saveText(reg)] + 
 			self.statements + 
-			restoreText(reg)
+			[restoreText(reg)]
 		)
 
 

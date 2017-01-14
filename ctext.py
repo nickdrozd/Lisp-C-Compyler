@@ -59,8 +59,21 @@ funcEnvText = 'env = COMPENVOBJ(func);'
 parseParamsText = lambda params: 'unev = parse("{}\n");'.format(params)
 extendEnvText = 'env = extendEnv(unev, arglist, env);'
 
+# func call
+
+def funcTestGotoText(test):
+	return lambda label: 'if ({}(func))'.format(test) + gotoText(label)
+
+isPrimitiveTestText = funcTestGotoText('isPrimitive')
+isCompoundTestText = funcTestGotoText('isCompound')
+
+
 # arglist
 
 nullArglText = 'arglist = NULLOBJ;'
 consValNullText = 'arglist = CONS(val, NULLOBJ);'
 consValArglText = 'arglist = CONS(val, arglist);'
+
+
+def applyPrimText(target):
+	return '{} = applyPrimitive(func, arglist);'.format(target)

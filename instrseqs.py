@@ -54,6 +54,14 @@ def LambdaEntrySeq(lispParams, bodySeq):
 
 	return InstrSeq([func, arglist], [env, unev], stmnts)
 
+###
+
+def PrimCallSeq(target, linkage):
+	instr = applyPrimText(target)
+	seq = InstrSeq([func, arglist], [target], [instr])
+	return endWithLink(linkage, seq)
+
+
 def NullArglSeq():
 	return InstrSeq([], [arglist], [nullArglText])
 
@@ -61,7 +69,7 @@ def ConsValNullSeq():
 	return InstrSeq([val], [arglist], [consValNullText])
 
 def ConsValArglSeq():
-	return InstrSeq([val, arglist], [arglist], consValArglText)
+	return InstrSeq([val, arglist], [arglist], [consValArglText])
 
 
 ###
