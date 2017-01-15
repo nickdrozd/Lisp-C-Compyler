@@ -1,5 +1,6 @@
 # include this?
 from parse import schemify
+from registers import *
 
 # make these more general
 # (or not; it's easy to get these mixed up)
@@ -45,7 +46,7 @@ def ifTestGotoText(label):
 	return 'if (isTrue(val)) ' + gotoText(label)
 
 def labelDestText(label):
-	return '{}: '.format(label)
+	return '{}:'.format(label)
 
 infoText = lambda label: 'print_info("{}");'.format(label)
 
@@ -67,7 +68,6 @@ def funcTestGotoText(test):
 isPrimitiveTestText = funcTestGotoText('isPrimitive')
 isCompoundTestText = funcTestGotoText('isCompound')
 
-
 # arglist
 
 nullArglText = 'arglist = NULLOBJ;'
@@ -77,3 +77,20 @@ consValArglText = 'arglist = CONS(val, arglist);'
 
 def applyPrimText(target):
 	return '{} = applyPrimitive(func, arglist);'.format(target)
+
+# func app
+
+def assContText(linkage):
+	return 'cont = LABELOBJ(_{});'.format(linkage)
+
+# compiled instrs
+assValFuncLabelText = 'val = COMPLABOBJ(func);'
+gotoValText = gotoText('COMP_LABEL')
+
+# compound instrs
+saveCont = saveText(cont)
+gotoCompound = gotoText('APPLY_COMPOUND')
+
+# not valTarg, not retLink
+def valtoTargText(target):
+	return '{} = val;'.format(target)

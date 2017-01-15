@@ -1,22 +1,12 @@
 from instructions import *
 from ctext import *
 from registers import *
-# from labels import *
-from linkage import endWithLink
+from labels import LabelSeq, appLinkLabelsBranches
+from linkage import *
 
 # instructions
 
-def LabelSeq(instrText):
-	def Seq(label):
-		instr = instrText(label)
-		return InstrSeq(
-			needed=[],
-			modified=[], 
-			statements=[instr])
-	return Seq
-
 TestGotoSeq = LabelSeq(ifTestGotoText)
-BranchSeq = LabelSeq(branchText)
 
 ###
 
@@ -61,7 +51,7 @@ def PrimCallSeq(target, linkage):
 	seq = InstrSeq([func, arglist], [target], [instr])
 	return endWithLink(linkage, seq)
 
-
+###
 
 def TestFuncSeq(testText):
 	def seq(label):
@@ -76,7 +66,7 @@ def FuncTestsSeq(primitiveLabel, compoundLabel):
 			TestPrimitiveSeq(primitiveLabel), 
 			TestCompoundSeq(compoundLabel))
 
-
+###
 
 def NullArglSeq():
 	return InstrSeq([], [arglist], [nullArglText])
@@ -87,50 +77,58 @@ def ConsValNullSeq():
 def ConsValArglSeq():
 	return InstrSeq([val, arglist], [arglist], [consValArglText])
 
-
 ###
 
-# class LambdaSeq(InstrSeq):
-# 	def __init__(self, target, linkage, lispParams, bodySeq):
-# 		# labels
-# 		labels, branches = makeLambdaLabels()
-# 		funcEntry, afterLambda = labels
-# 		funcEntryBranch, afterLambdaBranch = branches
+def FuncAppLinkSeq(funcType):
+	funcTypeStmnts = {
+		'compiled' : [assValFuncLabelText, gotoValText], 
+		'compound' : [saveCont, gotoCompound]
+	}
 
-# 		lambdaLink = afterLambda if linkage == nex else linkage
+	try:
+		stmnts = funcTypeStmnts[funcType]
+	except:
+		raise Exception('Bad funcType: {}'.format(funcType))
 
-# 		makeSeq = LambdaMakeSeq(target, funcEntry, lambdaLink)
-# 		entrySeq = LambdaEntrySeq(funcEntry, lispParams, bodySeq)
+	return InstrSeq([func], allRegs, stmnts)
 
-# 		super().__init__()
-# 		for seq in makeSeq, entrySeq, afterLambdaBranch:
-# 			self.append(seq)
+def AssContSeq(linkage):
+	return InstrSeq([], [cont], [assContText(linkage)])
 
-# ###
+def FuncReturnSeq(target, linkage):
+	return InstrSeq([val], [target], 
+					[valtoTargText(target), 
+					gotoText(linkage)])
 
-# class AssDefSeq(InstrSeq):
-# 	def __init__(self, variable, valueCode, target, linkage):
-# 		super().__init__()
-# 		self.append(valueCode)
-# 		cmdSeq = AssDefCmdSeq(self.cmd, variable, target)
-# 		# leave ass/def val as return val
-# 		self.preserving([env], cmdSeq)
-# 		self.endWithLink(linkage)
 
-# class AssDefCmdSeq(InstrSeq):
-# 	def __init__(self, cmd, var, target):
-# 		super().__init__([env, val], [target], 
-# 						[assDefText(cmd)(var)])
+def ValNotRetSeq(funcType, target, linkage):
+	# ignore target
+	return appendInstrSeqs(
+				AssContSeq(linkage), 
+				FuncAppLinkSeq(funcType))
 
-# class AssSeq(AssDefSeq):
-# 	def __init__(self, variable, valueCode, target, linkage):
-# 		self.cmd = assCmd
-# 		super().__init__(variable, valueCode, target, linkage)
+def NotValNotRetSeq(funcType, target, linkage):
+	labels, branches = appLinkLabelsBranches()
+	funcReturn, = labels
+	funcReturnBranch, = branches
 
-# class DefSeq(AssDefSeq):
-# 	def __init__(self, variable, valueCode, target, linkage):
-# 		self.cmd = defCmd
-# 		super().__init__(variable, valueCode, target, linkage)
+	return appendInstrSeqs(
+				AssContSeq(funcReturn),
+				FuncAppLinkSeq(funcType),  
+				funcReturnBranch, 
+				FuncReturnSeq(target, linkage))
+
+def ValRetSeq(funcType, target, linkage):
+	# seq needs cont, but not excplicitly
+	AddContSeq = InstrSeq([cont], [], [])
+	
+	# ignore target and linkage
+	return appendInstrSeqs(
+				FuncAppLinkSeq(funcType), 
+				AddContSeq)
+
+
+
 
 
 

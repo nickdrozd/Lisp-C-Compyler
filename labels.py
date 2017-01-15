@@ -1,23 +1,43 @@
-from instrseqs import BranchSeq
+from ctext import branchText
+from instructions import InstrSeq
 
 # particular label/branch sets
 
 ifLabelNames = 'TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF'
 lambdaLabelNames = 'FUNC_ENTRY', 'AFTER_LAMBDA'
 funcLabelNames = 'PRIMITIVE', 'COMPOUND', 'COMPILED', 'AFTER_CALL'
+appLinkLabelNames = 'FUNC_RETURN',
 
 def makeLabelsAndBranches(labelNames):
 	return lambda: labelsAndBranches(labelNames)
-
-ifLabelsBranches, lambdaLabelsBranches, funcLabelsBranches, = [
-	makeLabelsAndBranches(labelNames) for labelNames in 
-		(ifLabelNames, lambdaLabelNames, funcLabelNames)
-]
 
 def labelsAndBranches(labelNames):
         labels = [makeLabel(label) for label in labelNames]
         branches = [BranchSeq(label) for label in labels]
         return labels, branches
+
+def LabelSeq(instrText):
+	def Seq(label):
+		instr = instrText(label)
+		return InstrSeq(
+			needed=[],
+			modified=[], 
+			statements=[instr])
+	return Seq
+
+BranchSeq = LabelSeq(branchText)
+
+(ifLabelsBranches, 
+	lambdaLabelsBranches, 
+	funcLabelsBranches, 
+	appLinkLabelsBranches) = [
+		makeLabelsAndBranches(labelNames) 
+			for labelNames in 
+				(ifLabelNames, 
+					lambdaLabelNames, 
+					funcLabelNames, 
+					appLinkLabelNames)
+]
 
 # label numbering
 

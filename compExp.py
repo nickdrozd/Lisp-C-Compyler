@@ -252,9 +252,9 @@ def compApp(expr, target=val, linkage=nex):
 	# print(funcCallCode.statements)
 	# print()
 
-	for stmnt in funcCallCode.statements:
-		print(stmnt)
-	print()
+	# for stmnt in funcCallCode.statements:
+	# 	print(stmnt)
+	# print()
 
 	return preserving(
 			[env, cont], 
@@ -364,60 +364,79 @@ def compFuncCall(target, linkage):
 
 
 def compFuncApp(target, linkage, funcType):
-	"funcType as string: 'compiled' or 'compound'"
-	valTarg = target == val
-	retLink = linkage == ret
+	conditions = {
+		(True, True) : 
+			ValRetSeq, 
+		(True, False) : 
+			ValNotRetSeq, 
+		(False, False) :
+			NotValNotRetSeq
+	}
 
-	assignVal = "val = COMPLABOBJ(func);"
-	gotoVal = "goto COMP_LABEL;"
-	compiledList = [assignVal, gotoVal]
+	try:
+		linkSeq = conditions[(
+					target == val, 
+					linkage == ret)]
+	except:
+		raise Exception('bad function call', 'compFuncApp')
 
-	saveCont = "save(cont);"
-	gotoCompound = "goto APPLY_COMPOUND;"
-	compoundList = [saveCont, gotoCompound]
+	return linkSeq(funcType, target, linkage)
 
-	isCompiled = funcType == 'compiled'
 
-	# typical function call, eg (f 5)
-	if valTarg and not retLink:
-		# common instructions
-		assignCont = "cont = LABELOBJ(_%(linkage)s);" % locals()
+# def compFuncApp(target, linkage, funcType):
+# 	"funcType as string: 'compiled' or 'compound'"
+# 	valTarg = target == val
+# 	retLink = linkage == ret
 
-		funcList = compiledList if isCompiled else compoundList
-		instrList = [assignCont] + funcList
+# 	assignVal = "val = COMPLABOBJ(func);"
+# 	gotoVal = "goto COMP_LABEL;"
+# 	compiledList = [assignVal, gotoVal]
+
+# 	saveCont = "save(cont);"
+# 	gotoCompound = "goto APPLY_COMPOUND;"
+# 	compoundList = [saveCont, gotoCompound]
+
+# 	isCompiled = funcType == 'compiled'
+
+# 	# typical function call, eg (f 5)
+# 	if valTarg and not retLink:
+# 		# common instructions
+# 		assignCont = "cont = LABELOBJ(_%(linkage)s);" % locals()
+
+# 		funcList = compiledList if isCompiled else compoundList
+# 		instrList = [assignCont] + funcList
 			
-		return InstrSeq([func], allRegs, instrList)
+# 		return InstrSeq([func], allRegs, instrList)
 
 
-	# target is func, eg in ((f 4) 5)
-	elif not valTarg and not retLink:
-		labels = ('FUNC_RETURN',)
-		branches, infos = labelsAndBranches(labels)
-		(funcReturn,) = branches
-		(funcReturnInfo,) = infos
+# 	# target is func, eg in ((f 4) 5)
+# 	elif not valTarg and not retLink:
+# 		labels, branches = appLinkLabelsBranches()
+# 		funcReturn, = labels
+# 		funcReturnBranch, = branches
 
-		assignCont = "cont = LABELOBJ(_%(funcReturn)s);" % locals()
+# 		assignCont = "cont = LABELOBJ(_%(funcReturn)s);" % locals()
 
-		funcList = compiledList if isCompiled else compoundList
+# 		funcList = compiledList if isCompiled else compoundList
 
-		assignTarget = "%(target)s = val;" % locals()
-		gotoLinkage = "goto %(linkage)s;" % locals()
+# 		assignTarget = "%(target)s = val;" % locals()
+# 		gotoLinkage = "goto %(linkage)s;" % locals()
 
-		returnList = [funcReturnInfo, assignTarget, gotoLinkage]
+# 		returnList = [funcReturnBranch, assignTarget, gotoLinkage]
 
-		instrList = [assignCont] + funcList + returnList
+# 		instrList = [assignCont] + funcList + returnList
 
-		return InstrSeq([func], allRegs, instrList)
+# 		return InstrSeq([func], allRegs, instrList)
 
 
-	# this gets called, but I don't understand when
-	elif valTarg and retLink:
-		instrList = compiledList if isCompiled else compoundList
+# 	# this gets called, but I don't understand when
+# 	elif valTarg and retLink:
+# 		instrList = compiledList if isCompiled else compoundList
 
-		return InstrSeq([func, cont], allRegs, instrList)
+# 		return InstrSeq([func, cont], allRegs, instrList)
 
-	else:
-		Exception('bad function call', 'compFuncApp')
+# 	else:
+# 		raise Exception('bad function call', 'compFuncApp')
 
 #----------------------------------#
 
