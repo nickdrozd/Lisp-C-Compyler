@@ -62,6 +62,22 @@ def PrimCallSeq(target, linkage):
 	return endWithLink(linkage, seq)
 
 
+
+def TestFuncSeq(testText):
+	def seq(label):
+		return InstrSeq([func], [], [testText(label)])
+	return seq
+
+TestPrimitiveSeq = TestFuncSeq(isPrimitiveTestText)
+TestCompoundSeq = TestFuncSeq(isCompoundTestText)
+
+def FuncTestsSeq(primitiveLabel, compoundLabel):
+	return appendInstrSeqs(
+			TestPrimitiveSeq(primitiveLabel), 
+			TestCompoundSeq(compoundLabel))
+
+
+
 def NullArglSeq():
 	return InstrSeq([], [arglist], [nullArglText])
 

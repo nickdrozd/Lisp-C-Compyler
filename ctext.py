@@ -62,7 +62,7 @@ extendEnvText = 'env = extendEnv(unev, arglist, env);'
 # func call
 
 def funcTestGotoText(test):
-	return lambda label: 'if ({}(func))'.format(test) + gotoText(label)
+	return lambda label: 'if ({}(func)) '.format(test) + gotoText(label)
 
 isPrimitiveTestText = funcTestGotoText('isPrimitive')
 isCompoundTestText = funcTestGotoText('isCompound')

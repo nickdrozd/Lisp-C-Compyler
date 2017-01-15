@@ -2,6 +2,9 @@ from ctext import *
 
 
 class InstrSeq:
+	def __str__(self):
+		return '\n'.join([str(type(self))] + self.statements)
+
 	def __repr__(self):
 		return '\n'.join([str(type(self))] + self.statements)
 
@@ -18,7 +21,7 @@ class InstrSeq:
 
 	def preserve(self, reg):
 		self.needed.add(reg)
-		self.modified.remove(reg)
+		self.modified.discard(reg)
 		self.statements = (
 			[saveText(reg)] + 
 			self.statements + 

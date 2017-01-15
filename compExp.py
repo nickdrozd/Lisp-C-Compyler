@@ -239,11 +239,22 @@ def compApp(expr, target=val, linkage=nex):
 	argCodes = [compExp(arg) for arg in arguments]
 	argListCode = constructArglist(argCodes)
 
+	# print(expr, 'argListCode')
+	# print(argListCode)
+	# print()
+
 	# this assumes that primitives won't be redefined
 	if function in primitives:
 		funcCallCode = PrimCallSeq(target, linkage)
 	else:
 		funcCallCode = compFuncCall(target, linkage)
+
+	# print(funcCallCode.statements)
+	# print()
+
+	for stmnt in funcCallCode.statements:
+		print(stmnt)
+	print()
 
 	return preserving(
 			[env, cont], 
@@ -256,60 +267,60 @@ def compApp(expr, target=val, linkage=nex):
 		)
 
 
-def constructArglist(argCodes):
-	if not argCodes:
-		return NullArglSeq()
-
-	# else
-	lastArg, *restArgs = reversed(argCodes)
-	lastArgSeq = appendInstrSeqs(
-					lastArg, 
-					ConsValNullSeq())
-	
-	consedArgs = InstrSeq()
-	for argCode in restArgs:
-		consedArgs = preserving(
-					[env], 
-					consedArgs, 
-					preserving(
-						[arglist], 
-						argCode, 
-						ConsValArglSeq()))
-
-	return preserving(
-				[env], 
-				lastArgSeq, 
-				consedArgs)
-
-
-
 # def constructArglist(argCodes):
 # 	if not argCodes:
 # 		return NullArglSeq()
 
-# 	# else:
+# 	# else
 # 	lastArg, *restArgs = reversed(argCodes)
-# 	instrSeq = ConsValNullSeq()
-# 	codeToGetLastArg = appendInstrSeqs(lastArg, instrSeq)
+# 	lastArgSeq = appendInstrSeqs(
+# 					lastArg, 
+# 					ConsValNullSeq())
+	
+# 	consedArgs = InstrSeq()
+# 	for argCode in restArgs:
+# 		consedArgs = preserving(
+# 					[env], 
+# 					consedArgs, 
+# 					preserving(
+# 						[arglist], 
+# 						argCode, 
+# 						ConsValArglSeq()))
 
-# 	if not restArgs:
-# 		return codeToGetLastArg
-# 	else:
-# 		return preserving([env], codeToGetLastArg,
-# 					codeToGetRestArgs(restArgs))
+# 	return preserving(
+# 				[env], 
+# 				lastArgSeq, 
+# 				consedArgs)
 
 
-# def codeToGetRestArgs(argCodes):
-# 	nextArg, *restArgs = argCodes
-# 	instrSeq = ConsValArglSeq()
-# 	codeForNextArg = preserving([arglist], 
-# 							nextArg, instrSeq)
 
-# 	if not restArgs:
-# 		return codeForNextArg
-# 	else:
-# 		return preserving([env], codeForNextArg,
-# 					codeToGetRestArgs(restArgs))
+def constructArglist(argCodes):
+	if not argCodes:
+		return NullArglSeq()
+
+	# else:
+	lastArg, *restArgs = reversed(argCodes)
+	instrSeq = ConsValNullSeq()
+	codeToGetLastArg = appendInstrSeqs(lastArg, instrSeq)
+
+	if not restArgs:
+		return codeToGetLastArg
+	else:
+		return preserving([env], codeToGetLastArg,
+					codeToGetRestArgs(restArgs))
+
+
+def codeToGetRestArgs(argCodes):
+	nextArg, *restArgs = argCodes
+	instrSeq = ConsValArglSeq()
+	codeForNextArg = preserving([arglist], 
+							nextArg, instrSeq)
+
+	if not restArgs:
+		return codeForNextArg
+	else:
+		return preserving([env], codeForNextArg,
+					codeToGetRestArgs(restArgs))
 
 
 def compFuncCall(target, linkage):
@@ -322,28 +333,15 @@ def compFuncCall(target, linkage):
 
 	endLabel = afterCall if linkage == nex else linkage
 
-	def makeTestGotoSeq(testString, label):
-		test = "if (%(testString)s(func)) " % locals()
-		goto = "goto %(label)s;" % locals()
-		instrList = [test + goto]
-		return InstrSeq([func], [], instrList)
-
-	testPrimitiveSeq = makeTestGotoSeq('isPrimitive', primitive)
-	testCompoundSeq = makeTestGotoSeq('isCompound', compound)
-	testSeqs = appendInstrSeqs(testPrimitiveSeq, testCompoundSeq)
-
-	applyPrimitive = "%(target)s = applyPrimitive(func, arglist);" % locals()
-	applyPrimitiveSeq = InstrSeq([func, arglist], 
-					[target], [applyPrimitive])
+	testSeqs = FuncTestsSeq(primitive, compound)
 
 	# calling compFuncApp twice generates two different endLabels
-	funcTypes = ('compound', 'compiled')
-	compFuncApps = [
+	funcTypes = 'compound', 'compiled'
+	compoundLink, compiledLink = [
 		compFuncApp(target, endLabel, funcType)
 			for funcType in funcTypes]
-	(compoundLink, compiledLink) = compFuncApps
 
-	primitiveLink = endWithLink(linkage, applyPrimitiveSeq)
+	primitiveLink = PrimCallSeq(target, linkage)
 
 	branchLinks = (
 		(compiledBranch, compiledLink), 
@@ -357,7 +355,9 @@ def compFuncCall(target, linkage):
 	(compiledLabeled, compoundLabeled, 
 		primitiveLabeled) = labeled
 
-	compoundPrimPara = parallelInstrSeqs(compoundLabeled, primitiveLabeled)
+	compoundPrimPara = parallelInstrSeqs(
+						compoundLabeled, 
+						primitiveLabeled)
 	compiledPara = parallelInstrSeqs(compiledLabeled, compoundPrimPara)
 
 	return appendInstrSeqs(testSeqs, compiledPara, afterCallBranch)
