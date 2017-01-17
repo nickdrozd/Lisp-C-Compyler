@@ -53,18 +53,14 @@ def compQuote(expr, target, linkage):
 	return QuoteSeq(lispText, target, linkage)
 
 
-def compAssDef(CFunc):
-	"CFunc is string"
-
-	def isSugarDef(exp):
-	# list? tuple? something more general?
-		return type(exp[1]) == list
+def compAssDef(instrType):
+	"instrType is string: 'ass' or 'def'"
 
 	def transformSugarDef(exp):
-		if not isSugarDef(exp):
+		if type(exp[1]) is str:
 			return exp
-		_, funcArgs, *body = exp
-		func, *args = funcArgs
+
+		_, [func, *args], *body = exp
 		lambdaExp = ['lambda', args] + body
 		return ['define', func, lambdaExp]
 		
@@ -74,18 +70,18 @@ def compAssDef(CFunc):
 		_, variable, value = expr
 		valueCode = compExp(value, val, nex)
 
-		# leave ass/def val as return val
-		instr = CFunc + "(NAMEOBJ(\"%(variable)s\"), val, env);" % locals()
-		instrSeq = InstrSeq([env, val], [target], [instr])
+		seqType = AssDefSeq(instrType)
+		instrSeq = seqType(variable, target)
 
-		preserved = preserving([env], valueCode, instrSeq)
-		return endWithLink(linkage, preserved)
+		return endWithLink(linkage, 
+				preserving([env], 
+					valueCode, 
+					instrSeq))
 
 	return comp
 
-
-compAss = compAssDef('setVar')
-compDef = compAssDef('defineVar')
+compAss = compAssDef('ass')
+compDef = compAssDef('def')
 
 
 def compIf(expr, target=val, linkage=nex):

@@ -16,12 +16,16 @@ parseText = assignText('{} = parse("{}\\n");')
 
 # ass / def
 
+# leave ass/def val as return val
 def assDefText(cmd):
-	text = cmd + '(NAMEOBJ(\"{}\"), val, env);'
+	text = cmd + '(NAMEOBJ("{}"), val, env);'
 	return lambda var: text.format(var)
 
 assCmd = 'setVar'
 defCmd = 'defineVar'
+
+assText = assDefText(assCmd)
+defText = assDefText(defCmd)
 
 # stack operations
 

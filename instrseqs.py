@@ -23,6 +23,21 @@ QuoteSeq = SimpleSeq(parseText, [])
 
 ###
 
+def AssDefSeq(instrType):
+	instrs = {
+		'ass' : assText, 
+		'def' : defText
+	}
+
+	instr = instrs[instrType]
+
+	def Seq(var, target):
+		return InstrSeq([env, val], [target], [instr(var)])
+
+	return Seq
+
+###
+
 def IfTestSeq(label):
 	return InstrSeq([val], [], [ifTestText(label)])
 
