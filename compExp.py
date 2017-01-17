@@ -28,7 +28,8 @@ def compExp(expr, target=val, linkage=nex):
 		compType = compVar if isVar(expr) else compNum
 	else:
 		try:
-			compType = keyword_comps[getTag(expr)]
+			tag, *_ = expr
+			compType = keyword_comps[tag]
 		except:
 			compType = compApp
 	return compType(expr, target, linkage)
