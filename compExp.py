@@ -39,24 +39,18 @@ def compExp(expr, target=val, linkage=nex):
 #----------------------------------#
 
 def compNum(expr, target, linkage):
-	instr = "%(target)s = NUMOBJ(%(expr)s);" % locals()
-	instrSeq = InstrSeq([], [target], [instr])
-	return endWithLink(linkage, instrSeq)
+	return NumSeq(expr, target, linkage)
 
 
 def compVar(expr, target, linkage):
-	instr = "%(target)s = lookup(NAMEOBJ(\"%(expr)s\"), env);" % locals()
-	instrSeq = InstrSeq([env], [target], [instr])
-	return endWithLink(linkage, instrSeq)
+	return VarSeq(expr, target, linkage)
 
 
 def compQuote(expr, target, linkage):
 	_, text = expr
 	lispText = schemify(text)
 
-	instr = '%(target)s = parse("%(lispText)s\\n");' % locals()
-	instrSeq = InstrSeq([], [target], [instr])
-	return endWithLink(linkage, instrSeq)
+	return QuoteSeq(lispText, target, linkage)
 
 
 def compAssDef(CFunc):

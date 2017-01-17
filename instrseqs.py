@@ -12,7 +12,7 @@ TestGotoSeq = LabelSeq(ifTestGotoText)
 
 def SimpleSeq(instrText, needed):
 	def Seq(expr, target, linkage):
-		instr = instrText(expr)
+		instr = instrText(expr, target)
 		seq = InstrSeq(needed, [target], [instr])
 		return endWithLink(linkage, seq)
 	return Seq
