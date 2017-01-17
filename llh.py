@@ -15,8 +15,3 @@ def isNum(exp):
 
 def isVar(exp):
 	return type(exp) == str
-
-# classifier helper
-
-def getTag(exp):
-	return exp[0]

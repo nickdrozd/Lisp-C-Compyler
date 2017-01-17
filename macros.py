@@ -1,5 +1,3 @@
-from llh import getTag # needed?
-
 def transformOr(exp):
 	if len(exp[1:]) == 0:
 		return 0
@@ -47,16 +45,16 @@ macro_transformers = {
 	# 'delay' : transformDelay,
 }
 
-macro_keys = macro_transformers.keys()
-
 def isMacro(expr):
 	try:
-		return getTag(expr) in macro_keys
+		tag, *_ = expr
+		return tag in macro_transformers
 	except:
 		return False
 
 def transformMacro(expr):
-	return macro_transformers[getTag(expr)](expr)
+	tag, *_ = expr
+	return macro_transformers[tag](expr)
 
 def transformMacros(expr):
 	while isMacro(expr):
