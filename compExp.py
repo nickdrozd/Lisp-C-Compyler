@@ -1,10 +1,6 @@
 '''
 TODO:
 	* documentation
-	* generic instruction generator?
-	* instrSeq class
-	* rename 'infos'
-	* move out keyword_groups (how?)
 '''
 
 from parse import parse
