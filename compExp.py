@@ -8,8 +8,6 @@ from parse import parse
 from registers import *
 from keywords import *
 
-from linkage import *
-
 from macros import transformMacros
 
 #----------------------------------#

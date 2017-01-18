@@ -6,7 +6,6 @@ from labels import *
 
 from primitives import primitives
 from registers import *
-from linkage import *
 
 from compExp import compExp
 
@@ -47,10 +46,14 @@ def compAssDef(instrType):
 		seqType = AssDefSeq(instrType)
 		instrSeq = seqType(variable, target)
 
-		return endWithLink(linkage, 
-				preserving([env], 
+		return preserving([env], 
 					valueCode, 
-					instrSeq))
+					instrSeq).endWithLink(linkage)
+
+		# return endWithLink(linkage, 
+		# 		preserving([env], 
+		# 			valueCode, 
+		# 			instrSeq))
 
 	return comp
 
@@ -230,7 +233,7 @@ def compFuncCall(target, linkage):
 
 	return appendInstrSeqs(
 			testSeqs, 
-			parallelBranches(
+			parallelInstrSeqs(
 				appendInstrSeqs(
 					compiledBranch, 
 					compiledLink), 

@@ -1,4 +1,5 @@
 from ctext import *
+from registers import *
 
 
 class InstrSeq:
@@ -28,6 +29,10 @@ class InstrSeq:
 			[restoreText(reg)]
 		)
 
+	def endWithLink(self, linkage):
+		return preserving([cont], 
+				self, 
+				LinkageSeq(linkage))
 
 def appendInstrSeqs(*seqs):
 	needed, modified, statements = set(), set(), []
@@ -68,3 +73,35 @@ def preserving(regs, seq1, seq2):
 			returnSeq, 
 			seq2)
 
+###
+
+def EmptySeq():
+	return InstrSeq()
+
+def GotoContSeq():
+	return InstrSeq([cont], [], [gotoContinueText])
+
+def GotoLinkageSeq(linkage):
+	return InstrSeq([], [], [gotoText(linkage)])
+
+def LinkageSeq(linkage):
+	seqs = {
+		ret : GotoContSeq, 
+		nex : EmptySeq
+	}
+
+	try:
+		return seqs[linkage]()
+	except:
+		return GotoLinkageSeq(linkage)
+
+
+
+
+# from instrseqs import LinkageSeq
+
+
+# def endWithLink(linkage, instrSeq):
+# 	return preserving([cont], 
+# 			instrSeq, 
+# 			LinkageSeq(linkage))

@@ -2,7 +2,7 @@ from instructions import *
 from ctext import *
 from registers import *
 from labels import LabelSeq, appLinkLabelsBranches
-from linkage import *
+
 
 # instructions
 
@@ -13,8 +13,9 @@ TestGotoSeq = LabelSeq(ifTestGotoText)
 def SimpleSeq(instrText, needed):
 	def Seq(expr, target, linkage):
 		instr = instrText(expr, target)
-		seq = InstrSeq(needed, [target], [instr])
-		return endWithLink(linkage, seq)
+		return InstrSeq(needed, [target], [instr]
+				).endWithLink(linkage)
+		# return endWithLink(linkage, seq)
 	return Seq
 
 NumSeq = SimpleSeq(numText, [])
@@ -44,11 +45,15 @@ def IfTestSeq(label):
 ###
 
 def LambdaMakeSeq(target, entryLabel, lambdaLink):
-	seq = InstrSeq([env], [target], [
+	return InstrSeq([env], [target], [
 			makeLambdaText(entryLabel, target), 
-		])
+		]).endWithLink(lambdaLink)
 
-	return endWithLink(lambdaLink, seq)
+	# seq = InstrSeq([env], [target], [
+	# 		makeLambdaText(entryLabel, target), 
+	# 	])
+
+	# return endWithLink(lambdaLink, seq)
 
 def LambdaEntrySeq(lispParams, bodySeq):
 	stmnts = [
@@ -63,8 +68,11 @@ def LambdaEntrySeq(lispParams, bodySeq):
 
 def PrimCallSeq(target, linkage):
 	instr = applyPrimText(target)
-	seq = InstrSeq([func, arglist], [target], [instr])
-	return endWithLink(linkage, seq)
+	return InstrSeq([func, arglist], [target], [instr]
+			).endWithLink(linkage)
+
+	# seq = InstrSeq([func, arglist], [target], [instr])
+	# return endWithLink(linkage, seq)
 
 ###
 
