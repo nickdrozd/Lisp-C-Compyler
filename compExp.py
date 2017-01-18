@@ -21,19 +21,24 @@ from macros import transformMacros
 def compExp(expr, target=val, linkage=nex):
 	expr = transformMacros(expr)
 
-	if isSelfEvaluating(expr):
-		compType = compVar if isVar(expr) else compNum
-	else:
-		tag, *_ = expr
-		compType = getCompFunc(tag)
+	compFunc = getCompFunc(expr)
 
-	return compType(expr, target, linkage)
+	return compFunc(expr, target, linkage)
 
 #----------------------------------#
 
 from compFuncs import *
 
-def getCompFunc(tag):
+def getCompFunc(expr):
+	if isVar(expr):
+		return compVar
+
+	if isNum(expr):
+		return compNum
+
+	# else
+	tag, *_ = expr
+
 	keyword_groups = {
 		define_keys : compDef, 
 		ass_keys : compAss, 
@@ -52,18 +57,11 @@ def getCompFunc(tag):
 
 #----------------------------------#
 
-def isSelfEvaluating(exp):
-	return isNum(exp) or isVar(exp)
-
-# numbers
-
 def isNum(exp):
 	try:
 		return type(int(exp)) == int
 	except:
 		return False
-
-# variables
 
 def isVar(exp):
 	return type(exp) == str
