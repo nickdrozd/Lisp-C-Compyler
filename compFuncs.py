@@ -73,19 +73,21 @@ def compIf(expr, target=val, linkage=nex):
 
 	gotoTrueSeq = TestGotoSeq(trueLabel)
 
-	testCodeGoto = appendInstrSeqs(testCode, gotoTrueSeq) 
-	thenCodeLabeled = appendInstrSeqs(trueBranch, thenCode)
-	elseCodeLabeled = appendInstrSeqs(falseBranch, elseCode)
-
 	# is afterIfBranch needed when linkage == ret?
 
 	return preserving([env, cont],
-		testCodeGoto, 
-		appendInstrSeqs(
-			parallelInstrSeqs(
-				elseCodeLabeled, 
-				thenCodeLabeled), 
-			afterIfBranch))
+			appendInstrSeqs(
+				testCode, 
+				gotoTrueSeq), 
+			appendInstrSeqs(
+				parallelInstrSeqs(
+					appendInstrSeqs(
+						trueBranch, 
+						thenCode), 
+					appendInstrSeqs(
+						falseBranch, 
+						elseCode)), 
+				afterIfBranch))
 
 
 def compBegin(expr, target=val, linkage=nex):
@@ -96,10 +98,9 @@ def compBegin(expr, target=val, linkage=nex):
 def compSeq(seq, target=val, linkage=nex):
     returnSeq, regs = InstrSeq(), [env, cont]
     for exp in reversed(seq):
-        returnSeq = preserving(
-        	regs, 
-        	compExp(exp, target, linkage), 
-        	returnSeq)
+        returnSeq = preserving(regs, 
+        				compExp(exp, target, linkage), 
+						returnSeq)
     return returnSeq
 
 
@@ -119,11 +120,10 @@ def compLambda(expr, target=val, linkage=nex):
 	funcEntrySeq = LambdaEntrySeq(lispParams, bodySeq)
 
 	return appendInstrSeqs(
-		makeLambdaSeq, 
-		funcEntryBranch, 
-		funcEntrySeq, 
-		afterLambdaBranch		
-	)
+				makeLambdaSeq, 
+				funcEntryBranch, 
+				funcEntrySeq, 
+				afterLambdaBranch)
 
 
 def compApp(expr, target=val, linkage=nex):
@@ -134,28 +134,15 @@ def compApp(expr, target=val, linkage=nex):
 	argCodes = [compExp(arg) for arg in arguments]
 	argListCode = constructArglist(argCodes)
 
-	# print(expr, 'argListCode')
-	# print(argListCode)
-	# print()
-
 	# this assumes that primitives won't be redefined
 	if function in primitives:
 		funcCallCode = PrimCallSeq(target, linkage)
 	else:
 		funcCallCode = compFuncCall(target, linkage)
 
-	# print(funcCallCode.statements)
-	# print()
-
-	# for stmnt in funcCallCode.statements:
-	# 	print(stmnt)
-	# print()
-
-	return preserving(
-			[env, cont], 
+	return preserving([env, cont], 
 			funcCode, 
-			preserving(
-				[func, cont], # redundant cont save?
+			preserving([func, cont], # redundant cont save?
 				argListCode, 
 				funcCallCode
 			)
@@ -236,34 +223,24 @@ def compFuncCall(target, linkage):
 	testSeqs = FuncTestsSeq(primitive, compound)
 
 	# calling compFuncApp twice generates two different endLabels
-	funcTypes = 'compound', 'compiled'
-	compoundLink, compiledLink = [
-		compFuncApp(target, endLabel, funcType)
-			for funcType in funcTypes]
+	compoundLink = compFuncApp(target, endLabel, 'compound')
+	compiledLink = compFuncApp(target, endLabel, 'compiled')
 
 	primitiveLink = PrimCallSeq(target, linkage)
 
-	branchLinks = (
-		(compiledBranch, compiledLink), 
-		(compoundBranch, compoundLink), 
-		(primitiveBranch, primitiveLink)
-	)
-
-	labeled = [appendInstrSeqs(branch, link)
-				for (branch, link) in branchLinks]
-
-	(compiledLabeled, compoundLabeled, 
-		primitiveLabeled) = labeled
-
-	parallelBranches = parallelInstrSeqs(
-						compiledLabeled, 
-						compoundLabeled, 
-						primitiveLabeled)
-
 	return appendInstrSeqs(
-				testSeqs, 
-				parallelBranches, 
-				afterCallBranch)
+			testSeqs, 
+			parallelBranches(
+				appendInstrSeqs(
+					compiledBranch, 
+					compiledLink), 
+				appendInstrSeqs(
+					compoundBranch, 
+					compoundLink), 
+				appendInstrSeqs(
+					primitiveBranch, 
+					primitiveLink)), 
+			afterCallBranch)
 
 
 def compFuncApp(target, linkage, funcType):
@@ -279,7 +256,8 @@ def compFuncApp(target, linkage, funcType):
 	try:
 		linkSeq = conditions[(
 					target == val, 
-					linkage == ret)]
+					linkage == ret
+				)]
 	except:
 		raise Exception('bad function call', 'compFuncApp')
 
