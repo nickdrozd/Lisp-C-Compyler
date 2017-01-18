@@ -196,26 +196,31 @@ def constructArglist(argCodes):
 	# else:
 	lastArg, *restArgs = reversed(argCodes)
 	instrSeq = ConsValNullSeq()
-	codeToGetLastArg = appendInstrSeqs(lastArg, instrSeq)
+	codeToGetLastArg = appendInstrSeqs(
+						lastArg, 
+						instrSeq)
 
 	if not restArgs:
 		return codeToGetLastArg
 	else:
-		return preserving([env], codeToGetLastArg,
-					codeToGetRestArgs(restArgs))
+		return preserving([env], 
+				codeToGetLastArg,
+				codeToGetRestArgs(restArgs))
 
 
 def codeToGetRestArgs(argCodes):
 	nextArg, *restArgs = argCodes
 	instrSeq = ConsValArglSeq()
 	codeForNextArg = preserving([arglist], 
-							nextArg, instrSeq)
+						nextArg, 
+						instrSeq)
 
 	if not restArgs:
 		return codeForNextArg
 	else:
-		return preserving([env], codeForNextArg,
-					codeToGetRestArgs(restArgs))
+		return preserving([env], 
+				codeForNextArg,
+				codeToGetRestArgs(restArgs))
 
 
 def compFuncCall(target, linkage):
@@ -250,12 +255,15 @@ def compFuncCall(target, linkage):
 	(compiledLabeled, compoundLabeled, 
 		primitiveLabeled) = labeled
 
-	compoundPrimPara = parallelInstrSeqs(
+	parallelBranches = parallelInstrSeqs(
+						compiledLabeled, 
 						compoundLabeled, 
 						primitiveLabeled)
-	compiledPara = parallelInstrSeqs(compiledLabeled, compoundPrimPara)
 
-	return appendInstrSeqs(testSeqs, compiledPara, afterCallBranch)
+	return appendInstrSeqs(
+				testSeqs, 
+				parallelBranches, 
+				afterCallBranch)
 
 
 def compFuncApp(target, linkage, funcType):
