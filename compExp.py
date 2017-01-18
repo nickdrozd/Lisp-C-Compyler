@@ -3,7 +3,6 @@ TODO:
 	* documentation
 	* generic instruction generator?
 	* instrSeq class
-	* remove llh?
 	* rename 'infos'
 	* move out keyword_groups (how?)
 '''
@@ -16,13 +15,12 @@ from keywords import *
 from linkage import *
 
 from macros import transformMacros
-from llh import *
 
 #----------------------------------#
 
 def compExp(expr, target=val, linkage=nex):
 	expr = transformMacros(expr)
-	
+
 	if isSelfEvaluating(expr):
 		compType = compVar if isVar(expr) else compNum
 	else:
@@ -51,3 +49,21 @@ def getCompFunc(tag):
 
 	# default
 	return compApp
+
+#----------------------------------#
+
+def isSelfEvaluating(exp):
+	return isNum(exp) or isVar(exp)
+
+# numbers
+
+def isNum(exp):
+	try:
+		return type(int(exp)) == int
+	except:
+		return False
+
+# variables
+
+def isVar(exp):
+	return type(exp) == str
