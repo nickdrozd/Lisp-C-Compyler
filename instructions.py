@@ -57,11 +57,14 @@ def parallelInstrSeqs(*seqs):
 def preserving(regs, seq1, seq2):
 	returnSeq = InstrSeq(
 		seq1.needed, 
-		seq2.modified, 
+		seq1.modified, 
 		seq1.statements)
+
 	for reg in regs:
 		if seq2.needs(reg) and seq1.modifies(reg):
 			returnSeq.preserve(reg)
-	returnSeq.statements += seq2.statements
-	return returnSeq
+
+	return appendInstrSeqs(
+			returnSeq, 
+			seq2)
 
