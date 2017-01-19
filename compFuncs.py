@@ -85,11 +85,11 @@ def compIf(expr, target=val, linkage=nex):
 			appendInstrSeqs(
 				parallelInstrSeqs(
 					appendInstrSeqs(
-						trueBranch, 
-						thenCode), 
-					appendInstrSeqs(
 						falseBranch, 
-						elseCode)), 
+						elseCode), 
+					appendInstrSeqs(
+						trueBranch, 
+						thenCode)), 
 				afterIfBranch))
 
 
@@ -144,12 +144,10 @@ def compApp(expr, target=val, linkage=nex):
 		funcCallCode = compFuncCall(target, linkage)
 
 	return preserving([env, cont], 
-			funcCode, 
-			preserving([func, cont], # redundant cont save?
-				argListCode, 
-				funcCallCode
-			)
-		)
+				funcCode, 
+				preserving([func, cont], # redundant cont save?
+					argListCode, 
+					funcCallCode))
 
 
 # def constructArglist(argCodes):
