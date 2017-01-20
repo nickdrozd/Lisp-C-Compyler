@@ -33,7 +33,8 @@ def AssDefSeq(instrType):
 	instr = instrs[instrType]
 
 	def Seq(var, target):
-		return InstrSeq([env, val], [target], [instr(var)])
+		# modified = [target] if ass/def returns a fixed value
+		return InstrSeq([env, val], [], [instr(var)])
 
 	return Seq
 
