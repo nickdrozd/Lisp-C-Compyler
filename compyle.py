@@ -21,7 +21,7 @@ def compyle(exprSeq):
 	print()
 
 	target = val
-	linkage = nex
+	linkage = 'HELLO'
 
 	for expr in exprSeq:
 		print(expr, target, linkage, '\n')
@@ -58,9 +58,19 @@ exprSeq = [
 	# '((f))',
 	# '((f 4))',
 	# '((f) (g) (h))', 
-	'((f a) (g b) (h c))',
+	# '((f a) (g b) (h c))',
 	# '(- a b)',
 	# '(begin (define f -) (f a b))',
+	'''
+	(define (iterative_fibonacci_compiled n)
+		(define (loop count a b)
+			(if (one? count)
+				b
+				(loop (sub1 count)
+					b
+					(_+_ a b))))
+		(loop n 0 1))
+	'''
 ]
 
 compyle(exprSeq)
