@@ -99,12 +99,16 @@ def compBegin(expr, target=val, linkage=nex):
 
 
 def compSeq(seq, target=val, linkage=nex):
-    returnSeq, regs = InstrSeq(), [env, cont]
-    for exp in reversed(seq):
-        returnSeq = preserving(regs, 
-        				compExp(exp, target, linkage), 
+	*allButLast, lastExp = seq
+	returnSeq = InstrSeq()
+	for exp in allButLast:
+		returnSeq = preserving([env, cont], 
+				compExp(exp, target, nex), 
 						returnSeq)
-    return returnSeq
+
+	return preserving([env, cont], 
+				returnSeq, 
+				compExp(lastExp, target, linkage))
 
 
 def compLambda(expr, target=val, linkage=nex):
