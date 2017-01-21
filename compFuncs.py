@@ -123,9 +123,11 @@ def compLambda(expr, target=val, linkage=nex):
 	funcEntrySeq = LambdaEntrySeq(lispParams, bodySeq)
 
 	return appendInstrSeqs(
-				makeLambdaSeq, 
-				funcEntryBranch, 
-				funcEntrySeq, 
+				tackOnInstrSeq(
+					makeLambdaSeq,
+					appendInstrSeqs( 
+						funcEntryBranch, 
+						funcEntrySeq)), 
 				afterLambdaBranch)
 
 

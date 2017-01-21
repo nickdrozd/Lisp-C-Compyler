@@ -4,7 +4,12 @@ from registers import *
 
 class InstrSeq:
 	def __str__(self):
-		return '\n'.join([str(type(self))] + self.statements)
+		return '\n'.join([str(type(self))] + 
+							self.statements + 
+							['needed:'] + 
+							list(self.needed) + 
+							['modified:'] + 
+							list(self.modified))
 
 	def __repr__(self):
 		return '\n'.join([str(type(self))] + self.statements)
@@ -44,10 +49,10 @@ def appendInstrSeqs(*seqs):
 
 
 def tackOnInstrSeq(seq, bodySeq):
-	needed = seq.needed
-	modified = seq.modified
-	statements = seq.statements + bodySeq.statements
-	return InstrSeq(needed, modified, statements)
+	return InstrSeq(
+			seq.needed, 
+			seq.modified, 
+			seq.statements + bodySeq.statements)
 
 
 def parallelInstrSeqs(*seqs):
