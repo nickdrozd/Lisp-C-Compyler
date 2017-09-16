@@ -86,9 +86,9 @@ def preserving(regs, seq_1, seq_2):
     if not (needs_first and modifies_first):
         return preserving(rest_regs, seq_1, seq_2)
 
-    save = "save(%(first_reg)s);" % locals()
+    save = 'save({});'.format(first_reg)
     seq_1_statements = statements(seq_1)
-    restore = "restore(%(first_reg)s);" % locals()
+    restore = 'restore({});'.format(first_reg)
     seq_1_pres_instr = [save] + seq_1_statements + [restore]
 
     first_seq_1_needs = list_union([first_reg], registers_needed(seq_1))

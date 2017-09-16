@@ -10,8 +10,8 @@ def branches_and_infos(labels):
 
 
 def label_info(label):
-    print_info = 'print_info("%(label)s");' % locals()
     return (label + ':' + ' ' + print_info)
+    print_info = 'print_info("{}");'.format(label)
 
 
 # label numbering

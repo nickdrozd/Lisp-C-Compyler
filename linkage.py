@@ -12,7 +12,7 @@ def compile_linkage(linkage):
     elif linkage == nex:
         return empty_instr_seq
 
-    return make_instr_seq([], [], ['goto %(linkage)s;' % locals()])
+    return make_instr_seq([], [], ['goto {};'.format(linkage)])
 
 
 def end_with_link(linkage, instr_seq):

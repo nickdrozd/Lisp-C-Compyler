@@ -37,13 +37,13 @@ def comp_exp(expr, target=val, linkage=nex):
 #----------------------------------#
 
 def comp_num(expr, target, linkage):
-    instr = "%(target)s = NUMOBJ(%(expr)s);" % locals()
+    instr = "{} = NUMOBJ({});".format(target, expr)
     instr_seq = make_instr_seq([], [target], [instr])
     return end_with_link(linkage, instr_seq)
 
 
 def comp_var(expr, target, linkage):
-    instr = "%(target)s = lookup(NAMEOBJ(\"%(expr)s\"), env);" % locals()
+    instr = "{} = lookup(NAMEOBJ(\"{}\"), env);".format(target, expr)
     instr_seq = make_instr_seq([env], [target], [instr])
     return end_with_link(linkage, instr_seq)
 
@@ -52,7 +52,7 @@ def comp_quote(expr, target, linkage):
     _, text = expr
     lisp_text = schemify(text)
 
-    instr = '%(target)s = parse("%(lisp_text)s\\n");' % locals()
+    instr = '{} = parse("{}\\n");'.format(target, lisp_text)
     instr_seq = make_instr_seq([], [target], [instr])
     return end_with_link(linkage, instr_seq)
 
@@ -78,7 +78,7 @@ def comp_ass_def(CFunc):
         value_code = comp_exp(value, val, nex)
 
         # leave ass/def val as return val
-        instr = CFunc + "(NAMEOBJ(\"%(variable)s\"), val, env);" % locals()
+        instr = CFunc + "(NAMEOBJ(\"{}\"), val, env);".format(variable)
         instr_seq = make_instr_seq([env, val], [target], [instr])
 
         preserved = preserving([env], value_code, instr_seq)
@@ -108,7 +108,7 @@ def comp_if(expr, target=val, linkage=nex):
     else_code = comp_exp(if_else, target, then_link)
 
     is_true_instr = "if (isTrue(val)) "
-    goto_true_instr = "goto %(true_branch)s;" % locals()
+    goto_true_instr = "goto {};".format(true_branch)
     instr_list = [is_true_instr + goto_true_instr]
     test_goto_seq = make_instr_seq([val], [], instr_list)
 
@@ -149,7 +149,7 @@ def comp_lambda(expr, target=val, linkage=nex):
     lambda_link = after_lambda if linkage == nex else linkage
     lambda_body = comp_lambda_body(expr, func_entry_info)
 
-    instr = "%(target)s = COMPOBJ(_%(func_entry)s, env);" % locals()
+    instr = "{} = COMPOBJ(_{}, env);".format(target, func_entry)
     instr_seq = make_instr_seq([env], [target], [instr])
 
     instr_linked = end_with_link(lambda_link, instr_seq)
@@ -164,7 +164,7 @@ def comp_lambda_body(expr, func_entry_info):
     lisp_params = schemify(params)
 
     assign_func_env = "env = COMPENVOBJ(func);"
-    parse_params = 'unev = parse("%(lisp_params)s\\n");' % locals()
+    parse_params = 'unev = parse("{}\\n");'.format(lisp_params)
     extend_func_env = "env = extendEnv(unev, arglist, env);" # %(params)s ?
 
     instr_list = [
@@ -195,7 +195,7 @@ def comp_app(expr, target=val, linkage=nex):
     arg_list_code = construct_arglist(arg_codes)
 
     if function in primitives:
-        prim_call = "%(target)s = applyPrimitive(func, arglist);" % locals()
+        prim_call = "{} = applyPrimitive(func, arglist);".format(target)
         prim_call_seq = make_instr_seq([func, arglist], [target], [prim_call])
         func_call_code = end_with_link(linkage, prim_call_seq)
     else:
@@ -281,8 +281,8 @@ def comp_func_call(target, linkage):
     end_label = after_call if linkage == nex else linkage
 
     def make_test_goto_seq(test_string, label):
-        test = "if (%(test_string)s(func)) " % locals()
-        goto = "goto %(label)s;" % locals()
+        test = "if ({}(func)) ".format(test_string)
+        goto = "goto {};".format(label)
         instr_list = [test + goto]
         return make_instr_seq([func], [], instr_list)
 
@@ -290,7 +290,7 @@ def comp_func_call(target, linkage):
     test_compound_seq = make_test_goto_seq('isCompound', compound_branch)
     test_seqs = append_instr_seqs(test_primitive_seq, test_compound_seq)
 
-    apply_primitive = "%(target)s = applyPrimitive(func, arglist);" % locals()
+    apply_primitive = "{} = applyPrimitive(func, arglist);".format(target)
     apply_primitive_seq = make_instr_seq(
         [func, arglist],
         [target],
@@ -347,7 +347,7 @@ def comp_func_app(target, linkage, func_type):
     # typical function call, eg (f 5)
     if val_targ and not ret_link:
         # common instructions
-        assign_cont = "cont = LABELOBJ(_%(linkage)s);" % locals()
+        assign_cont = "cont = LABELOBJ(_{});".format(linkage)
 
         func_list = compiled_list if is_compiled else compound_list
         instr_list = [assign_cont] + func_list
@@ -362,12 +362,12 @@ def comp_func_app(target, linkage, func_type):
         (func_return,) = branches
         (func_return_info,) = infos
 
-        assign_cont = "cont = LABELOBJ(_%(func_return)s);" % locals()
+        assign_cont = "cont = LABELOBJ(_{});".format(func_return)
 
         func_list = compiled_list if is_compiled else compound_list
 
-        assign_target = "%(target)s = val;" % locals()
-        goto_linkage = "goto %(linkage)s;" % locals()
+        assign_target = "{} = val;".format(target)
+        goto_linkage = "goto {};".format(linkage)
 
         return_list = [func_return_info, assign_target, goto_linkage]
 
