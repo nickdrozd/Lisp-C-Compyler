@@ -3,10 +3,13 @@ From Peter Novrig's "Lispy"
 
 http://norvig.com/lispy.html
 
-(I've written my own parsers, but it's a pain 
-in the ass and this one is at least as good 
+(I've written my own parsers, but it's a pain
+in the ass and this one is at least as good
 as any of mine.)
 '''
+
+# pylint: skip-file
+# because I didn't write this!
 
 # primary functions
 
@@ -17,7 +20,7 @@ def parse(program):
 def schemify(exp):
     "Convert a Python object back into a Scheme-readable string."
     if isinstance(exp, List):
-        return '(' + ' '.join(map(schemify, exp)) + ')' 
+        return '(' + ' '.join(map(schemify, exp)) + ')'
     else:
         return str(exp)
 
