@@ -1,4 +1,5 @@
 # list operations
+# pylint: disable=invalid-name
 
 nil = '''
 (define nil (quote ()))
@@ -141,4 +142,4 @@ arith_lib = [
 ]
 
 
-library = list_lib + arith_lib
+LIBRARY = list_lib + arith_lib

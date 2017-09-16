@@ -1,6 +1,6 @@
 # labels
 
-labels = []
+LABELS = []
 
 
 def branches_and_infos(labels):
@@ -16,23 +16,23 @@ def label_info(label):
 
 # label numbering
 
-label_counts = {}
+LABEL_COUNTS = {}
 
 
 def new_label_number(name):
     try:
-        label_counts[name] += 1
+        LABEL_COUNTS[name] += 1
     except KeyError:
-        label_counts[name] = 1
+        LABEL_COUNTS[name] = 1
 
-    return label_counts[name]
+    return LABEL_COUNTS[name]
 
 
 def make_label(name):
-    global labels
-    global label_counts
+    global LABELS
+    global LABEL_COUNTS
     label = name + '_' + str(new_label_number(name))
-    labels += [label]
+    LABELS += [label]
     return label
 
 

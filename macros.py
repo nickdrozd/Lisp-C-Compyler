@@ -39,7 +39,7 @@ def transform_let(exp):
     return [lambda_exp] + values
 
 
-macro_transformers = {
+MACRO_TRANSFORMERS = {
     'let': transform_let,
     'cond': transform_cond,
     'or': transform_or,
@@ -51,14 +51,14 @@ macro_transformers = {
 def is_macro(expr):
     try:
         tag, *_ = expr
-        return tag in macro_transformers
+        return tag in MACRO_TRANSFORMERS
     except TypeError:
         return False
 
 
 def transform_macro(expr):
     tag, *_ = expr
-    return macro_transformers[tag](expr)
+    return MACRO_TRANSFORMERS[tag](expr)
 
 
 def transform_macros(expr):

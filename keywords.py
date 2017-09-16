@@ -1,11 +1,11 @@
-define_keys = 'define', 'def'
+DEFINE_KEYS = 'define', 'def'
 
-ass_keys = 'set!', 'ass!'
+ASS_KEYS = 'set!', 'ass!'
 
-lambda_keys = 'lambda', 'λ', 'fun'
+LAMBDA_KEYS = 'lambda', 'λ', 'fun'
 
-if_keys = ('if',)
+IF_KEYS = ('if',)
 
-begin_keys = 'begin', 'progn'
+BEGIN_KEYS = 'begin', 'progn'
 
-quote_keys = ('quote',)
+QUOTE_KEYS = ('quote',)

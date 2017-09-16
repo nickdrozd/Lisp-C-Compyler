@@ -94,7 +94,12 @@ def preserving(regs, seq_1, seq_2):
     first_seq_1_needs = list_union([first_reg], registers_needed(seq_1))
     first_seq_1_mods = list_diff(registers_modified(seq_1), [first_reg])
 
-    pres_instr_seq = make_instr_seq(first_seq_1_needs, first_seq_1_mods, seq_1_pres_instr)
+    pres_instr_seq = make_instr_seq(
+        first_seq_1_needs,
+        first_seq_1_mods,
+        seq_1_pres_instr
+    )
+
     return preserving(rest_regs, pres_instr_seq, seq_2)
 
 

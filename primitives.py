@@ -1,6 +1,6 @@
 # primitive functions
 
-primitives = (
+PRIMITIVES = (
     # arithmetic operations
     '_+_', '_*_', '-', '/',
     'add1', 'sub1',

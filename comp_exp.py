@@ -10,7 +10,7 @@ TODO:
 
 from registers import *
 from keywords import *
-from primitives import primitives
+from primitives import PRIMITIVES
 
 from instructions import *
 from linkage import *
@@ -22,14 +22,14 @@ from llh import *
 
 #----------------------------------#
 
-def comp_exp(expr, target=val, linkage=nex):
+def comp_exp(expr, target=VAL, linkage=NEX):
     expr = transform_macros(expr)
     if is_self_evaluating(expr):
         comp_type = comp_var if is_var(expr) else comp_num
     else:
         try:
             tag, *_ = expr
-            comp_type = keyword_comps[tag]
+            comp_type = KEYWORD_COMPS[tag]
         except KeyError:
             comp_type = comp_app
     return comp_type(expr, target, linkage)
@@ -44,7 +44,7 @@ def comp_num(expr, target, linkage):
 
 def comp_var(expr, target, linkage):
     instr = "{} = lookup(NAMEOBJ(\"{}\"), env);".format(target, expr)
-    instr_seq = make_instr_seq([env], [target], [instr])
+    instr_seq = make_instr_seq([ENV], [target], [instr])
     return end_with_link(linkage, instr_seq)
 
 
@@ -75,13 +75,13 @@ def comp_ass_def(CFunc):
         expr = transform_sugar_def(expr)
 
         _, variable, value = expr
-        value_code = comp_exp(value, val, nex)
+        value_code = comp_exp(value, VAL, NEX)
 
         # leave ass/def val as return val
         instr = CFunc + "(NAMEOBJ(\"{}\"), val, env);".format(variable)
-        instr_seq = make_instr_seq([env, val], [target], [instr])
+        instr_seq = make_instr_seq([ENV, VAL], [target], [instr])
 
-        preserved = preserving([env], value_code, instr_seq)
+        preserved = preserving([ENV], value_code, instr_seq)
         return end_with_link(linkage, preserved)
 
     return comp
@@ -91,7 +91,7 @@ comp_ass = comp_ass_def('setVar')
 comp_def = comp_ass_def('defineVar')
 
 
-def comp_if(expr, target=val, linkage=nex):
+def comp_if(expr, target=VAL, linkage=NEX):
     labels = ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF']
 
     branches, infos = branches_and_infos(labels)
@@ -99,18 +99,18 @@ def comp_if(expr, target=val, linkage=nex):
     [true_branch, false_branch, after_if] = branches
     [true_branch_info, false_branch_info, after_if_info] = infos
 
-    then_link = after_if if linkage == nex else linkage
+    then_link = after_if if linkage == NEX else linkage
 
     (_, if_test, if_then, if_else) = expr
 
-    test_code = comp_exp(if_test, val, nex)
+    test_code = comp_exp(if_test, VAL, NEX)
     then_code = comp_exp(if_then, target, linkage)
     else_code = comp_exp(if_else, target, then_link)
 
     is_true_instr = "if (isTrue(val)) "
     goto_true_instr = "goto {};".format(true_branch)
     instr_list = [is_true_instr + goto_true_instr]
-    test_goto_seq = make_instr_seq([val], [], instr_list)
+    test_goto_seq = make_instr_seq([VAL], [], instr_list)
 
     then_code_labeled = append_instr_seqs(
         true_branch_info,
@@ -129,39 +129,39 @@ def comp_if(expr, target=val, linkage=nex):
         else_then_seq,
         after_if_info)
 
-    preserved = [env, cont]
+    preserved = [ENV, CONT]
     return preserving(preserved, test_code, test_gotos_then_else_seq)
 
 
-def comp_begin(expr, target=val, linkage=nex):
+def comp_begin(expr, target=VAL, linkage=NEX):
     _, *seq = expr
     return comp_seq(seq, target, linkage)
 
 
-def comp_seq(seq, target=val, linkage=nex):
+def comp_seq(seq, target=VAL, linkage=NEX):
     first, *rest = seq
 
     if not rest:
         return comp_exp(first, target, linkage)
 
-    comp_first = comp_exp(first, target, nex)
+    comp_first = comp_exp(first, target, NEX)
     comp_rest = comp_seq(rest, target, linkage)
-    preserved = [env, cont]
+    preserved = [ENV, CONT]
     return preserving(preserved, comp_first, comp_rest)
 
 
-def comp_lambda(expr, target=val, linkage=nex):
+def comp_lambda(expr, target=VAL, linkage=NEX):
     labels = ('ENTRY', 'AFTER_LAMBDA')
 
     branches, infos = branches_and_infos(labels)
     func_entry, after_lambda = branches
     func_entry_info, after_lambda_info = infos
 
-    lambda_link = after_lambda if linkage == nex else linkage
+    lambda_link = after_lambda if linkage == NEX else linkage
     lambda_body = comp_lambda_body(expr, func_entry_info)
 
     instr = "{} = COMPOBJ(_{}, env);".format(target, func_entry)
-    instr_seq = make_instr_seq([env], [target], [instr])
+    instr_seq = make_instr_seq([ENV], [target], [instr])
 
     instr_linked = end_with_link(lambda_link, instr_seq)
     tacked_on = tack_on_instr_seq(instr_linked, lambda_body)
@@ -186,40 +186,40 @@ def comp_lambda_body(expr, func_entry_info):
     ]
 
     instr_seq = make_instr_seq(
-        [env, func, arglist],
-        [env],
+        [ENV, FUNC, ARGLIST],
+        [ENV],
         instr_list
     )
 
-    body_seq = comp_seq(body, val, ret)
+    body_seq = comp_seq(body, VAL, RET)
     appended = append_instr_seqs(instr_seq, body_seq)
 
     return appended
 
 
-def comp_app(expr, target=val, linkage=nex):
+def comp_app(expr, target=VAL, linkage=NEX):
     function, *arguments = expr
 
-    func_code = comp_exp(function, target=func)
+    func_code = comp_exp(function, target=FUNC)
 
     arg_codes = [comp_exp(arg) for arg in arguments]
     arg_list_code = construct_arglist(arg_codes)
 
-    if function in primitives:
+    if function in PRIMITIVES:
         prim_call = "{} = applyPrimitive(func, arglist);".format(target)
-        prim_call_seq = make_instr_seq([func, arglist], [target], [prim_call])
+        prim_call_seq = make_instr_seq([FUNC, ARGLIST], [target], [prim_call])
         func_call_code = end_with_link(linkage, prim_call_seq)
     else:
         func_call_code = comp_func_call(target, linkage)
 
     argl_pres_func = preserving(
-        [func, cont],
+        [FUNC, CONT],
         arg_list_code,
         func_call_code
     )
 
     return preserving(
-        [env, cont],
+        [ENV, CONT],
         func_code,
         argl_pres_func
     )
@@ -230,11 +230,11 @@ def construct_arglist(arg_codes):
 
     if not arg_codes:
         instr = "arglist = NULLOBJ;"
-        return make_instr_seq([], [arglist], [instr])
+        return make_instr_seq([], [ARGLIST], [instr])
 
     # else:
     instr = "arglist = CONS(val, NULLOBJ);"
-    instr_seq = make_instr_seq([val], [arglist], [instr])
+    instr_seq = make_instr_seq([VAL], [ARGLIST], [instr])
 
     last_arg, *rest_args = arg_codes
 
@@ -244,7 +244,7 @@ def construct_arglist(arg_codes):
         return code_to_get_last_arg
 
     return preserving(
-        [env],
+        [ENV],
         code_to_get_last_arg,
         code_to_get_rest_args(rest_args)
     )
@@ -254,13 +254,13 @@ def code_to_get_rest_args(arg_codes):
     next_arg, *rest_args = arg_codes
     instr = "arglist = CONS(val, arglist);"
     instr_seq = make_instr_seq(
-        [val, arglist],
-        [arglist],
+        [VAL, ARGLIST],
+        [ARGLIST],
         [instr]
     )
 
     code_for_next_arg = preserving(
-        [arglist],
+        [ARGLIST],
         next_arg,
         instr_seq
     )
@@ -269,7 +269,7 @@ def code_to_get_rest_args(arg_codes):
         return code_for_next_arg
 
     return preserving(
-        [env],
+        [ENV],
         code_for_next_arg,
         code_to_get_rest_args(rest_args)
     )
@@ -289,13 +289,13 @@ def comp_func_call(target, linkage):
     (primitive_branch_info, compound_branch_info,
      compiled_branch_info, after_call_info) = infos
 
-    end_label = after_call if linkage == nex else linkage
+    end_label = after_call if linkage == NEX else linkage
 
     def make_test_goto_seq(test_string, label):
         test = "if ({}(func)) ".format(test_string)
         goto = "goto {};".format(label)
         instr_list = [test + goto]
-        return make_instr_seq([func], [], instr_list)
+        return make_instr_seq([FUNC], [], instr_list)
 
     test_primitive_seq = make_test_goto_seq('isPrimitive', primitive_branch)
     test_compound_seq = make_test_goto_seq('isCompound', compound_branch)
@@ -303,7 +303,7 @@ def comp_func_call(target, linkage):
 
     apply_primitive = "{} = applyPrimitive(func, arglist);".format(target)
     apply_primitive_seq = make_instr_seq(
-        [func, arglist],
+        [FUNC, ARGLIST],
         [target],
         [apply_primitive]
     )
@@ -350,8 +350,8 @@ def comp_func_call(target, linkage):
 
 def comp_func_app(target, linkage, func_type):
     "func_type as string: 'compiled' or 'compound'"
-    val_targ = target == val
-    ret_link = linkage == ret
+    val_targ = target == VAL
+    ret_link = linkage == RET
 
     assign_val = "val = COMPLABOBJ(func);"
     goto_val = "goto COMP_LABEL;"
@@ -371,7 +371,7 @@ def comp_func_app(target, linkage, func_type):
         func_list = compiled_list if is_compiled else compound_list
         instr_list = [assign_cont] + func_list
 
-        return make_instr_seq([func], all_regs, instr_list)
+        return make_instr_seq([FUNC], ALL_REGS, instr_list)
 
 
     # target is func, eg in ((f 4) 5)
@@ -392,14 +392,14 @@ def comp_func_app(target, linkage, func_type):
 
         instr_list = [assign_cont] + func_list + return_list
 
-        return make_instr_seq([func], all_regs, instr_list)
+        return make_instr_seq([FUNC], ALL_REGS, instr_list)
 
 
     # this gets called, but I don't understand when
     elif val_targ and ret_link:
         instr_list = compiled_list if is_compiled else compound_list
 
-        return make_instr_seq([func, cont], all_regs, instr_list)
+        return make_instr_seq([FUNC, CONT], ALL_REGS, instr_list)
 
     else:
         Exception('bad function call', 'comp_func_app')
@@ -408,12 +408,12 @@ def comp_func_app(target, linkage, func_type):
 
 def make_keywords():
     keyword_groups = {
-        define_keys: comp_def,
-        ass_keys: comp_ass,
-        lambda_keys: comp_lambda,
-        if_keys: comp_if,
-        begin_keys: comp_begin,
-        quote_keys: comp_quote
+        DEFINE_KEYS: comp_def,
+        ASS_KEYS: comp_ass,
+        LAMBDA_KEYS: comp_lambda,
+        IF_KEYS: comp_if,
+        BEGIN_KEYS: comp_begin,
+        QUOTE_KEYS: comp_quote
     }
 
     keyword_comps = {}
@@ -425,4 +425,4 @@ def make_keywords():
     return keyword_comps.keys(), keyword_comps
 
 
-keywords, keyword_comps = make_keywords()
+KEYWORDS, KEYWORD_COMPS = make_keywords()

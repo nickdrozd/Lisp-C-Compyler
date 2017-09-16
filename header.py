@@ -11,8 +11,8 @@ from parse import parse
 from comp_exp import comp_exp
 from instructions import statements
 from keywords import *
-from labels import labels
-from library import library
+from labels import LABELS
+from library import LIBRARY
 
 
 def make_lispinc_header(expr_seq):
@@ -46,12 +46,12 @@ def make_lispinc_header(expr_seq):
     comp_code.write('\n\n')
 
     def is_last_label(label):
-        labels_len = len(labels)
-        label_index = labels.index(label)
+        labels_len = len(LABELS)
+        label_index = LABELS.index(label)
         return label_index == labels_len - 1
 
     comp_code.write('#define COMP_CONT(REG) \\' + '\n')
-    for label in labels:
+    for label in LABELS:
         last_label = is_last_label(label)
         label_check = (
             'if (GETLABEL(REG) == _' + label +
@@ -64,7 +64,7 @@ def make_lispinc_header(expr_seq):
 
     comp_code.write('#define ALL_COMPILED_LABELS \\' + '\n')
     # i = 0
-    for label in labels:
+    for label in LABELS:
         undscr_label = '_' + label
         if is_last_label(label):
             listed_label = undscr_label
@@ -83,4 +83,4 @@ def make_lispinc_header(expr_seq):
     comp_code.write('\n\n' + '#endif' + '\n')
 
 
-make_lispinc_header(library)
+make_lispinc_header(LIBRARY)

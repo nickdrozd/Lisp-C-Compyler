@@ -12,8 +12,8 @@ compyle(['(define f (lambda () 5))', '(define x (f))']).
 
 from parse import parse
 from instructions import statements
-from labels import labels
-from library import library
+from labels import LABELS
+from library import LIBRARY
 from comp_exp import comp_exp
 
 
@@ -34,7 +34,7 @@ def compyle(expr_seq):
     print('\n')
 
 
-expr_seq = [
+TEST_SEQS = [
     # '5'
     # '(define x 5)',
     # '(def x 5)',
@@ -53,5 +53,5 @@ expr_seq = [
     # '((f 4))',
 ]
 
-compyle(expr_seq)
-# compyle(library)
+compyle(TEST_SEQS)
+# compyle(LIBRARY)
