@@ -68,11 +68,10 @@ fold_left = '''
     (loop null seq))
 '''
 
-
 list_lib = [
-nil, list_, length,
-list_ref, append, reverse,
-map_, fold_left,
+    nil, list_, length,
+    list_ref, append, reverse,
+    map_, fold_left,
 ]
 
 # arithmetic operations

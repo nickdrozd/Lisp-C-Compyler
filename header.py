@@ -18,7 +18,7 @@ from library import library
 def make_lispinc_header(expr_seq):
     comp_code = open('comp_code.h', 'w')
 
-    heading = (
+    heading = \
 '''/*
     This code is compiler-generated!
     It may be ugly, but it sure is fast!
@@ -31,7 +31,7 @@ def make_lispinc_header(expr_seq):
 #define COMP_CODE_GUARD
 
 #define COMPILED_CODE_BODY \\
-''')
+'''
 
     comp_code.write(heading)
     for expr in expr_seq:
@@ -81,8 +81,6 @@ def make_lispinc_header(expr_seq):
         comp_code.write(listed_label)
 
     comp_code.write('\n\n' + '#endif' + '\n')
-
-
 
 
 make_lispinc_header(library)

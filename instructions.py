@@ -1,9 +1,12 @@
 # instructions
 
+
 def make_instr_seq(needs, modifies, statements):
     return [needs, modifies, statements]
 
-empty_instr_seq = make_instr_seq([],[],[])
+
+empty_instr_seq = make_instr_seq([], [], [])
+
 
 def registers_needed(seq):
     if type(seq) == str:
@@ -11,11 +14,13 @@ def registers_needed(seq):
     else:
         return seq[0]
 
+
 def registers_modified(seq):
     if type(seq) == str:
         return []
     else:
         return seq[1]
+
 
 def statements(seq):
     if type(seq) == str:
@@ -23,8 +28,10 @@ def statements(seq):
     else:
         return seq[2]
 
+
 def needs_register(seq, reg):
     return reg in registers_needed(seq)
+
 
 def modifies_register(seq, reg):
     return reg in registers_modified(seq)
@@ -70,7 +77,6 @@ def parallel_instr_seqs(seq_1, seq_2):
     modified_2 = registers_modified(seq_2)
     modified = list_union(modified_1, modified_2)
 
-
     statements_1 = statements(seq_1)
     statements_2 = statements(seq_2)
     statement_seq = statements_1 + statements_2
@@ -109,6 +115,7 @@ def list_union(s_1, s_2):
         if i not in result:
             result += [i]
     return result
+
 
 def list_diff(s_1, s_2):
     result = []

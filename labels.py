@@ -2,18 +2,22 @@
 
 labels = []
 
+
 def branches_and_infos(labels):
     branches = [make_label(label) for label in labels]
     infos = [label_info(branch) for branch in branches]
     return (branches, infos)
 
+
 def label_info(label):
     print_info = 'print_info("%(label)s");' % locals()
     return (label + ':' + ' ' + print_info)
 
+
 # label numbering
 
 label_counts = {}
+
 
 def new_label_number(name):
     try:
@@ -23,12 +27,14 @@ def new_label_number(name):
 
     return label_counts[name]
 
+
 def make_label(name):
     global labels
     global label_counts
     label = name + '_' + str(new_label_number(name))
     labels += [label]
     return label
+
 
 # for this to work, numbers can't be used
 # in label names. for instance,

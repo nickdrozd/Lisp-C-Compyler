@@ -167,11 +167,19 @@ def comp_lambda_body(expr, func_entry_info):
     parse_params = 'unev = parse("%(lisp_params)s\\n");' % locals()
     extend_func_env = "env = extendEnv(unev, arglist, env);" # %(params)s ?
 
-    instr_list = [func_entry_info, assign_func_env,
-                    parse_params, extend_func_env]
+    instr_list = [
+        func_entry_info,
+        assign_func_env,
+        parse_params,
+        extend_func_env
+    ]
 
-    instr_seq = make_instr_seq([env, func, arglist],
-                [env], instr_list)
+    instr_seq = make_instr_seq(
+        [env, func, arglist],
+        [env],
+        instr_list
+    )
+
     body_seq = comp_seq(body, val, ret)
     appended = append_instr_seqs(instr_seq, body_seq)
 
@@ -193,11 +201,17 @@ def comp_app(expr, target=val, linkage=nex):
     else:
         func_call_code = comp_func_call(target, linkage)
 
-    argl_pres_func = preserving([func, cont],
-                        arg_list_code, func_call_code)
+    argl_pres_func = preserving(
+        [func, cont],
+        arg_list_code,
+        func_call_code
+    )
 
-    return preserving([env, cont],
-                func_code, argl_pres_func)
+    return preserving(
+        [env, cont],
+        func_code,
+        argl_pres_func
+    )
 
 
 def construct_arglist(arg_codes):
@@ -218,23 +232,36 @@ def construct_arglist(arg_codes):
     if not rest_args:
         return code_to_get_last_arg
     else:
-        return preserving([env], code_to_get_last_arg,
-                    code_to_get_rest_args(rest_args))
+        return preserving(
+            [env],
+            code_to_get_last_arg,
+            code_to_get_rest_args(rest_args)
+        )
 
 
 def code_to_get_rest_args(arg_codes):
     next_arg, *rest_args = arg_codes
     instr = "arglist = CONS(val, arglist);"
-    instr_seq = make_instr_seq([val, arglist],
-                    [arglist], [instr])
-    code_for_next_arg = preserving([arglist],
-                            next_arg, instr_seq)
+    instr_seq = make_instr_seq(
+        [val, arglist],
+        [arglist],
+        [instr]
+    )
+
+    code_for_next_arg = preserving(
+        [arglist],
+        next_arg,
+        instr_seq
+    )
 
     if not rest_args:
         return code_for_next_arg
     else:
-        return preserving([env], code_for_next_arg,
-                    code_to_get_rest_args(rest_args))
+        return preserving(
+            [env],
+            code_for_next_arg,
+            code_to_get_rest_args(rest_args)
+        )
 
 
 def comp_func_call(target, linkage):
@@ -246,10 +273,10 @@ def comp_func_call(target, linkage):
     branches, infos = branches_and_infos(labels)
 
     (primitive_branch, compound_branch,
-        compiled_branch, after_call) = branches
+     compiled_branch, after_call) = branches
 
     (primitive_branch_info, compound_branch_info,
-        compiled_branch_info, after_call_info) = infos
+     compiled_branch_info, after_call_info) = infos
 
     end_label = after_call if linkage == nex else linkage
 
@@ -264,14 +291,20 @@ def comp_func_call(target, linkage):
     test_seqs = append_instr_seqs(test_primitive_seq, test_compound_seq)
 
     apply_primitive = "%(target)s = applyPrimitive(func, arglist);" % locals()
-    apply_primitive_seq = make_instr_seq([func, arglist],
-                    [target], [apply_primitive])
+    apply_primitive_seq = make_instr_seq(
+        [func, arglist],
+        [target],
+        [apply_primitive]
+    )
 
     # calling comp_func_app twice generates two different end_labels
     func_types = ('compound', 'compiled')
+
     comp_func_apps = [
         comp_func_app(target, end_label, func_type)
-            for func_type in func_types]
+        for func_type in func_types
+    ]
+
     (compound_link, compiled_link) = comp_func_apps
 
     primitive_link = end_with_link(linkage, apply_primitive_seq)
@@ -282,11 +315,13 @@ def comp_func_call(target, linkage):
         (primitive_branch_info, primitive_link)
     )
 
-    labeled = [append_instr_seqs(branch, link)
-                for (branch, link) in branch_links]
+    labeled = [
+        append_instr_seqs(branch, link)
+        for (branch, link) in branch_links
+    ]
 
     (compiled_labeled, compound_labeled,
-        primitive_labeled) = labeled
+     primitive_labeled) = labeled
 
     compound_prim_para = parallel_instr_seqs(compound_labeled, primitive_labeled)
     compiled_para = parallel_instr_seqs(compiled_labeled, compound_prim_para)
@@ -354,12 +389,12 @@ def comp_func_app(target, linkage, func_type):
 
 def make_keywords():
     keyword_groups = {
-        define_keys : comp_def,
-        ass_keys : comp_ass,
-        lambda_keys : comp_lambda,
-        if_keys : comp_if,
-        begin_keys : comp_begin,
-        quote_keys : comp_quote
+        define_keys: comp_def,
+        ass_keys: comp_ass,
+        lambda_keys: comp_lambda,
+        if_keys: comp_if,
+        begin_keys: comp_begin,
+        quote_keys: comp_quote
     }
 
     keyword_comps = {}
@@ -369,5 +404,6 @@ def make_keywords():
             keyword_comps[key] = keyword_groups[group]
 
     return keyword_comps.keys(), keyword_comps
+
 
 keywords, keyword_comps = make_keywords()

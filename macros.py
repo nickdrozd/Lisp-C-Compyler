@@ -6,6 +6,7 @@ def transform_or(exp):
         rest = transform_or(['or'] + exp[2:])
         return ['if', first, 1, rest]
 
+
 def transform_cond(exp):
     _, *cond_pairs = exp
     if not cond_pairs:
@@ -25,6 +26,7 @@ def transform_cond(exp):
 
     return transformed
 
+
 def transform_let(exp):
     _, bindings, *body = exp
 
@@ -38,12 +40,13 @@ def transform_let(exp):
 
 
 macro_transformers = {
-    'let' : transform_let,
-    'cond' : transform_cond,
-    'or' : transform_or,
-    # 'and' : transform_and,
-    # 'delay' : transform_delay,
+    'let': transform_let,
+    'cond': transform_cond,
+    'or': transform_or,
+    # 'and': transform_and,
+    # 'delay': transform_delay,
 }
+
 
 def is_macro(expr):
     try:
@@ -52,9 +55,11 @@ def is_macro(expr):
     except:
         return False
 
+
 def transform_macro(expr):
     tag, *_ = expr
     return macro_transformers[tag](expr)
+
 
 def transform_macros(expr):
     while is_macro(expr):
