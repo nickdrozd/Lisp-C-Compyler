@@ -10,7 +10,6 @@ already exists.
 from parse import parse
 from comp_exp import comp_exp
 from instructions import statements
-from keywords import *
 from labels import LABELS
 from library import LIBRARY
 

@@ -1,5 +1,5 @@
-from registers import *
-from instructions import *
+from registers import CONT
+from instructions import make_instr_seq, empty_instr_seq, preserving
 
 RET = 'return'
 NEX = 'next'

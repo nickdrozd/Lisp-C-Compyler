@@ -8,16 +8,20 @@ TODO:
     * move out keyword_groups (how?)
 '''
 
-from registers import *
-from keywords import *
+import keywords
 
-from instructions import *
-from linkage import *
+from registers import CONT, ENV, VAL, FUNC, ARGLIST, ALL_REGS
+
+from instructions import preserving, \
+    make_instr_seq, tack_on_instr_seq, \
+    append_instr_seqs, parallel_instr_seqs
+
+from linkage import RET, NEX, end_with_link
 
 from labels import branches_and_infos
 from parse import schemify
 from macros import transform_macros
-from llh import *
+from llh import is_self_evaluating, is_var
 
 #----------------------------------#
 
@@ -204,7 +208,7 @@ def comp_app(expr, target=VAL, linkage=NEX):
     arg_codes = [comp_exp(arg) for arg in arguments]
     arg_list_code = construct_arglist(arg_codes)
 
-    if is_primitive(function):
+    if keywords.is_primitive(function):
         prim_call = "{} = applyPrimitive(func, arglist);".format(target)
         prim_call_seq = make_instr_seq([FUNC, ARGLIST], [target], [prim_call])
         func_call_code = end_with_link(linkage, prim_call_seq)
@@ -407,12 +411,12 @@ def comp_func_app(target, linkage, func_type):
 
 def make_keywords():
     keyword_groups = {
-        DEFINE_KEYS: comp_def,
-        ASS_KEYS: comp_ass,
-        LAMBDA_KEYS: comp_lambda,
-        IF_KEYS: comp_if,
-        BEGIN_KEYS: comp_begin,
-        QUOTE_KEYS: comp_quote
+        keywords.DEFINE: comp_def,
+        keywords.ASS: comp_ass,
+        keywords.LAMBDA: comp_lambda,
+        keywords.IF: comp_if,
+        keywords.BEGIN: comp_begin,
+        keywords.QUOTE: comp_quote
     }
 
     keyword_comps = {}

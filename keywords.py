@@ -1,14 +1,14 @@
-DEFINE_KEYS = 'define', 'def'
+DEFINE = 'define', 'def'
 
-ASS_KEYS = 'set!', 'ass!'
+ASS = 'set!', 'ass!'
 
-LAMBDA_KEYS = 'lambda', 'λ', 'fun'
+LAMBDA = 'lambda', 'λ', 'fun'
 
-IF_KEYS = ('if',)
+IF = ('if',)
 
-BEGIN_KEYS = 'begin', 'progn'
+BEGIN = 'begin', 'progn'
 
-QUOTE_KEYS = ('quote',)
+QUOTE = ('quote',)
 
 PRIMITIVES = (
     # arithmetic operations
