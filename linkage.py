@@ -8,10 +8,11 @@ nex = 'next'
 def compile_linkage(linkage):
     if linkage == ret:
         return make_instr_seq([cont], [], ['goto CONTINUE;'])
+
     elif linkage == nex:
         return empty_instr_seq
-    else:
-        return make_instr_seq([], [], ['goto %(linkage)s;' % locals()])
+
+    return make_instr_seq([], [], ['goto %(linkage)s;' % locals()])
 
 
 def end_with_link(linkage, instr_seq):

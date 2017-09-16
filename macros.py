@@ -1,10 +1,10 @@
 def transform_or(exp):
     if not exp[1:]:
         return 0
-    else:
-        first = exp[1]
-        rest = transform_or(['or'] + exp[2:])
-        return ['if', first, 1, rest]
+
+    first = exp[1]
+    rest = transform_or(['or'] + exp[2:])
+    return ['if', first, 1, rest]
 
 
 def transform_cond(exp):

@@ -9,24 +9,15 @@ empty_instr_seq = make_instr_seq([], [], [])
 
 
 def registers_needed(seq):
-    if isinstance(seq, str):
-        return []
-    else:
-        return seq[0]
+    return [] if isinstance(seq, str) else seq[0]
 
 
 def registers_modified(seq):
-    if isinstance(seq, str):
-        return []
-    else:
-        return seq[1]
+    return [] if isinstance(seq, str) else seq[1]
 
 
 def statements(seq):
-    if isinstance(seq, str):
-        return [seq]
-    else:
-        return seq[2]
+    return [seq] if isinstance(seq, str) else seq[2]
 
 
 def needs_register(seq, reg):
@@ -87,23 +78,24 @@ def parallel_instr_seqs(seq_1, seq_2):
 def preserving(regs, seq_1, seq_2):
     if not regs:
         return append_instr_seqs(seq_1, seq_2)
-    else:
-        first_reg, *rest_regs = regs
-        needs_first = needs_register(seq_2, first_reg)
-        modifies_first = modifies_register(seq_1, first_reg)
-        if needs_first and modifies_first:
-            save = "save(%(first_reg)s);" % locals()
-            seq_1_statements = statements(seq_1)
-            restore = "restore(%(first_reg)s);" % locals()
-            seq_1_pres_instr = [save] + seq_1_statements + [restore]
 
-            first_seq_1_needs = list_union([first_reg], registers_needed(seq_1))
-            first_seq_1_mods = list_diff(registers_modified(seq_1), [first_reg])
+    first_reg, *rest_regs = regs
+    needs_first = needs_register(seq_2, first_reg)
+    modifies_first = modifies_register(seq_1, first_reg)
 
-            pres_instr_seq = make_instr_seq(first_seq_1_needs, first_seq_1_mods, seq_1_pres_instr)
-            return preserving(rest_regs, pres_instr_seq, seq_2)
-        else:
-            return preserving(rest_regs, seq_1, seq_2)
+    if not (needs_first and modifies_first):
+        return preserving(rest_regs, seq_1, seq_2)
+
+    save = "save(%(first_reg)s);" % locals()
+    seq_1_statements = statements(seq_1)
+    restore = "restore(%(first_reg)s);" % locals()
+    seq_1_pres_instr = [save] + seq_1_statements + [restore]
+
+    first_seq_1_needs = list_union([first_reg], registers_needed(seq_1))
+    first_seq_1_mods = list_diff(registers_modified(seq_1), [first_reg])
+
+    pres_instr_seq = make_instr_seq(first_seq_1_needs, first_seq_1_mods, seq_1_pres_instr)
+    return preserving(rest_regs, pres_instr_seq, seq_2)
 
 
 def list_union(s_1, s_2):

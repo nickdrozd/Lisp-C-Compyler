@@ -129,13 +129,14 @@ def comp_begin(expr, target=val, linkage=nex):
 
 def comp_seq(seq, target=val, linkage=nex):
     first, *rest = seq
+
     if not rest:
         return comp_exp(first, target, linkage)
-    else:
-        comp_first = comp_exp(first, target, nex)
-        comp_rest = comp_seq(rest, target, linkage)
-        preserved = [env, cont]
-        return preserving(preserved, comp_first, comp_rest)
+
+    comp_first = comp_exp(first, target, nex)
+    comp_rest = comp_seq(rest, target, linkage)
+    preserved = [env, cont]
+    return preserving(preserved, comp_first, comp_rest)
 
 
 def comp_lambda(expr, target=val, linkage=nex):
@@ -230,12 +231,12 @@ def construct_arglist(arg_codes):
 
     if not rest_args:
         return code_to_get_last_arg
-    else:
-        return preserving(
-            [env],
-            code_to_get_last_arg,
-            code_to_get_rest_args(rest_args)
-        )
+
+    return preserving(
+        [env],
+        code_to_get_last_arg,
+        code_to_get_rest_args(rest_args)
+    )
 
 
 def code_to_get_rest_args(arg_codes):
@@ -255,12 +256,12 @@ def code_to_get_rest_args(arg_codes):
 
     if not rest_args:
         return code_for_next_arg
-    else:
-        return preserving(
-            [env],
-            code_for_next_arg,
-            code_to_get_rest_args(rest_args)
-        )
+
+    return preserving(
+        [env],
+        code_for_next_arg,
+        code_to_get_rest_args(rest_args)
+    )
 
 
 def comp_func_call(target, linkage):
