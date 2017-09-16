@@ -10,7 +10,6 @@ TODO:
 
 from registers import *
 from keywords import *
-from primitives import PRIMITIVES
 
 from instructions import *
 from linkage import *
@@ -205,7 +204,7 @@ def comp_app(expr, target=VAL, linkage=NEX):
     arg_codes = [comp_exp(arg) for arg in arguments]
     arg_list_code = construct_arglist(arg_codes)
 
-    if function in PRIMITIVES:
+    if is_primitive(function):
         prim_call = "{} = applyPrimitive(func, arglist);".format(target)
         prim_call_seq = make_instr_seq([FUNC, ARGLIST], [target], [prim_call])
         func_call_code = end_with_link(linkage, prim_call_seq)
