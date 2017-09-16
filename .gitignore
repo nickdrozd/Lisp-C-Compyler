@@ -2,6 +2,6 @@ __pycache__
 *.pyc
 
 *.c
-*.h
+comp_code.h
 
 *.txt
