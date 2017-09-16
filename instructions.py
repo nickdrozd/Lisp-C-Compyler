@@ -9,21 +9,21 @@ empty_instr_seq = make_instr_seq([], [], [])
 
 
 def registers_needed(seq):
-    if type(seq) == str:
+    if isinstance(seq, str):
         return []
     else:
         return seq[0]
 
 
 def registers_modified(seq):
-    if type(seq) == str:
+    if isinstance(seq, str):
         return []
     else:
         return seq[1]
 
 
 def statements(seq):
-    if type(seq) == str:
+    if isinstance(seq, str):
         return [seq]
     else:
         return seq[2]

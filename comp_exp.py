@@ -61,8 +61,7 @@ def comp_ass_def(CFunc):
     "CFunc is string"
 
     def is_sugar_def(exp):
-    # list? tuple? something more general?
-        return type(exp[1]) == list
+        return isinstance(exp[1], (list, tuple))
 
     def transform_sugar_def(exp):
         if not is_sugar_def(exp):

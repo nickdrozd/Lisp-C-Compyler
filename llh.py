@@ -7,10 +7,10 @@ def is_self_evaluating(exp):
 
 def is_num(exp):
     try:
-        return type(int(exp)) == int
-    except:
+        return isinstance(int(exp), int)
+    except (TypeError, ValueError):
         return False
 
 
 def is_var(exp):
-    return type(exp) == str
+    return isinstance(exp, str)
