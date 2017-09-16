@@ -4,15 +4,15 @@ from instructions import *
 ret = 'return'
 nex = 'next'
 
-def compileLinkage(linkage):
+def compile_linkage(linkage):
     if linkage == ret:
-        return makeInstrSeq([cont], [], ['goto CONTINUE;'])
+        return make_instr_seq([cont], [], ['goto CONTINUE;'])
     elif linkage == nex:
-        return emptyInstrSeq
+        return empty_instr_seq
     else:
-        return makeInstrSeq([], [], ['goto %(linkage)s;' % locals()])
+        return make_instr_seq([], [], ['goto %(linkage)s;' % locals()])
 
 
-def endWithLink(linkage, instrSeq):
-    return preserving([cont], instrSeq,
-                        compileLinkage(linkage))
+def end_with_link(linkage, instr_seq):
+    return preserving([cont], instr_seq,
+                        compile_linkage(linkage))

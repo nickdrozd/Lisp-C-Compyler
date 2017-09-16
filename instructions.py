@@ -1,17 +1,17 @@
 # instructions
 
-def makeInstrSeq(needs, modifies, statements):
+def make_instr_seq(needs, modifies, statements):
     return [needs, modifies, statements]
 
-emptyInstrSeq = makeInstrSeq([],[],[])
+empty_instr_seq = make_instr_seq([],[],[])
 
-def registersNeeded(seq):
+def registers_needed(seq):
     if type(seq) == str:
         return []
     else:
         return seq[0]
 
-def registersModified(seq):
+def registers_modified(seq):
     if type(seq) == str:
         return []
     else:
@@ -23,96 +23,96 @@ def statements(seq):
     else:
         return seq[2]
 
-def needsRegister(seq, reg):
-    return reg in registersNeeded(seq)
+def needs_register(seq, reg):
+    return reg in registers_needed(seq)
 
-def modifiesRegister(seq, reg):
-    return reg in registersModified(seq)
+def modifies_register(seq, reg):
+    return reg in registers_modified(seq)
 
 
-def appendInstrSeqs(*seqs):
-    def append2Seqs(seq1, seq2):
-        needed1 = registersNeeded(seq1)
-        needed2 = registersNeeded(seq2)
-        modified1 = registersModified(seq1)
-        modified2 = registersModified(seq2)
+def append_instr_seqs(*seqs):
+    def append_2_seqs(seq_1, seq_2):
+        needed_1 = registers_needed(seq_1)
+        needed_2 = registers_needed(seq_2)
+        modified_1 = registers_modified(seq_1)
+        modified_2 = registers_modified(seq_2)
 
-        needed = listUnion(needed1, listDiff(needed2, modified1))
-        modified = listUnion(modified1, modified2)
+        needed = list_union(needed_1, list_diff(needed_2, modified_1))
+        modified = list_union(modified_1, modified_2)
 
-        statements1 = statements(seq1)
-        statements2 = statements(seq2)
-        statementSeq = statements1 + statements2
+        statements_1 = statements(seq_1)
+        statements_2 = statements(seq_2)
+        statement_seq = statements_1 + statements_2
 
-        return makeInstrSeq(needed, modified, statementSeq)
+        return make_instr_seq(needed, modified, statement_seq)
 
-    returnSeq = emptyInstrSeq
+    return_seq = empty_instr_seq
 
     for seq in seqs:
-        returnSeq = append2Seqs(returnSeq, seq)
+        return_seq = append_2_seqs(return_seq, seq)
 
-    return returnSeq
-
-
-def tackOnInstrSeq(seq, bodySeq):
-    needed = registersNeeded(seq)
-    modified = registersModified(seq)
-    statementSeq = statements(seq) + statements(bodySeq)
-    return makeInstrSeq(needed, modified, statementSeq)
+    return return_seq
 
 
-def parallelInstrSeqs(seq1, seq2):
-    needed1 = registersNeeded(seq1)
-    needed2 = registersNeeded(seq2)
-    needed = listUnion(needed1, needed2)
-
-    modified1 = registersModified(seq1)
-    modified2 = registersModified(seq2)
-    modified = listUnion(modified1, modified2)
+def tack_on_instr_seq(seq, body_seq):
+    needed = registers_needed(seq)
+    modified = registers_modified(seq)
+    statement_seq = statements(seq) + statements(body_seq)
+    return make_instr_seq(needed, modified, statement_seq)
 
 
-    statements1 = statements(seq1)
-    statements2 = statements(seq2)
-    statementSeq = statements1 + statements2
+def parallel_instr_seqs(seq_1, seq_2):
+    needed_1 = registers_needed(seq_1)
+    needed_2 = registers_needed(seq_2)
+    needed = list_union(needed_1, needed_2)
 
-    return makeInstrSeq(needed, modified, statementSeq)
+    modified_1 = registers_modified(seq_1)
+    modified_2 = registers_modified(seq_2)
+    modified = list_union(modified_1, modified_2)
 
 
-def preserving(regs, seq1, seq2):
+    statements_1 = statements(seq_1)
+    statements_2 = statements(seq_2)
+    statement_seq = statements_1 + statements_2
+
+    return make_instr_seq(needed, modified, statement_seq)
+
+
+def preserving(regs, seq_1, seq_2):
     if len(regs) == 0:
-        return appendInstrSeqs(seq1, seq2)
+        return append_instr_seqs(seq_1, seq_2)
     else:
-        firstReg = regs[0]
-        restRegs = regs[1:]
-        needsFirst = needsRegister(seq2, firstReg)
-        modifiesFirst = modifiesRegister(seq1, firstReg)
-        if needsFirst and modifiesFirst:
-            save = "save(%(firstReg)s);" % locals()
-            seq1Statements = statements(seq1)
-            restore = "restore(%(firstReg)s);" % locals()
-            seq1PresInstr = [save] + seq1Statements + [restore]
+        first_reg = regs[0]
+        rest_regs = regs[1:]
+        needs_first = needs_register(seq_2, first_reg)
+        modifies_first = modifies_register(seq_1, first_reg)
+        if needs_first and modifies_first:
+            save = "save(%(first_reg)s);" % locals()
+            seq_1_statements = statements(seq_1)
+            restore = "restore(%(first_reg)s);" % locals()
+            seq_1_pres_instr = [save] + seq_1_statements + [restore]
 
-            firstSeq1Needs = listUnion([firstReg], registersNeeded(seq1))
-            firstSeq1Mods = listDiff(registersModified(seq1), [firstReg])
+            first_seq_1_needs = list_union([first_reg], registers_needed(seq_1))
+            first_seq_1_mods = list_diff(registers_modified(seq_1), [first_reg])
 
-            presInstrSeq = makeInstrSeq(firstSeq1Needs, firstSeq1Mods, seq1PresInstr)
-            return preserving(restRegs, presInstrSeq, seq2)
+            pres_instr_seq = make_instr_seq(first_seq_1_needs, first_seq_1_mods, seq_1_pres_instr)
+            return preserving(rest_regs, pres_instr_seq, seq_2)
         else:
-            return preserving(restRegs, seq1, seq2)
+            return preserving(rest_regs, seq_1, seq_2)
 
 
-def listUnion(s1, s2):
+def list_union(s_1, s_2):
     result = []
-    for i in s1:
+    for i in s_1:
         result += [i]
-    for i in s2:
+    for i in s_2:
         if i not in result:
             result += [i]
     return result
 
-def listDiff(s1, s2):
+def list_diff(s_1, s_2):
     result = []
-    for i in s1:
-        if i not in s2:
+    for i in s_1:
+        if i not in s_2:
             result += [i]
     return result

@@ -14,16 +14,16 @@ from parse import parse
 from instructions import statements
 from labels import labels
 from library import library
-from compExp import compExp
+from comp_exp import comp_exp
 
 
-def compyle(exprSeq):
+def compyle(expr_seq):
 
     print('\n')
 
-    for expr in exprSeq:
+    for expr in expr_seq:
         parsed = parse(expr)
-        compiled = compExp(parsed)
+        compiled = comp_exp(parsed)
         code = statements(compiled)
 
         for line in code:
@@ -34,7 +34,7 @@ def compyle(exprSeq):
     print('\n')
 
 
-exprSeq = [
+expr_seq = [
     # '5'
     # '(define x 5)',
     # '(def x 5)',
@@ -53,5 +53,5 @@ exprSeq = [
     # '((f 4))',
 ]
 
-compyle(exprSeq)
+compyle(expr_seq)
 # compyle(library)

@@ -1,11 +1,11 @@
 ''' LOW-LEVEL HELPERS '''
 
-def isSelfEvaluating(exp):
-    return isNum(exp) or isVar(exp)
+def is_self_evaluating(exp):
+    return is_num(exp) or is_var(exp)
 
 # numbers
 
-def isNum(exp):
+def is_num(exp):
     try:
         return type(int(exp)) == int
     except:
@@ -13,5 +13,5 @@ def isNum(exp):
 
 # variables
 
-def isVar(exp):
+def is_var(exp):
     return type(exp) == str

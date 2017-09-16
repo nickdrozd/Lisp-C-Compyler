@@ -5,4 +5,4 @@ val = 'val'
 func = 'func'
 arglist = 'arglist'
 
-allRegs = (cont, env, val, func, arglist)
+all_regs = (cont, env, val, func, arglist)

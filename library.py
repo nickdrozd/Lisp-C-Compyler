@@ -20,7 +20,7 @@ length = '''
 '''
 
 
-listRef = '''
+list_ref = '''
 (define (list-ref items n)
     (if (zero? n)
         (car items)
@@ -57,7 +57,7 @@ map_ = '''
     (loop nil items))
 '''
 
-foldLeft = '''
+fold_left = '''
 (define (fold-left comb null seq)
     (define (loop result rest)
         (if (null? rest)
@@ -69,10 +69,10 @@ foldLeft = '''
 '''
 
 
-listLib = [
+list_lib = [
 nil, list_, length,
-listRef, append, reverse,
-map_, foldLeft,
+list_ref, append, reverse,
+map_, fold_left,
 ]
 
 # arithmetic operations
@@ -134,7 +134,7 @@ fibonacci = '''
 '''
 
 
-arithLib = [
+arith_lib = [
     add, mul,
     recursive_factorial, iterative_factorial,
     recursive_fibonacci, iterative_fibonacci,
@@ -142,4 +142,4 @@ arithLib = [
 ]
 
 
-library = listLib + arithLib
+library = list_lib + arith_lib
