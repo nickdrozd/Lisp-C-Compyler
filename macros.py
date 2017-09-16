@@ -1,5 +1,5 @@
 def transform_or(exp):
-    if len(exp[1:]) == 0:
+    if not exp[1:]:
         return 0
     else:
         first = exp[1]

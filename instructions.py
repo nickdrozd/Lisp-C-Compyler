@@ -85,11 +85,10 @@ def parallel_instr_seqs(seq_1, seq_2):
 
 
 def preserving(regs, seq_1, seq_2):
-    if len(regs) == 0:
+    if not regs:
         return append_instr_seqs(seq_1, seq_2)
     else:
-        first_reg = regs[0]
-        rest_regs = regs[1:]
+        first_reg, *rest_regs = regs
         needs_first = needs_register(seq_2, first_reg)
         modifies_first = modifies_register(seq_1, first_reg)
         if needs_first and modifies_first:
