@@ -112,11 +112,22 @@ def comp_if(expr, target=val, linkage=nex):
     instr_list = [is_true_instr + goto_true_instr]
     test_goto_seq = make_instr_seq([val], [], instr_list)
 
-    then_code_labeled = append_instr_seqs(true_branch_info, then_code)
-    else_code_labeled = append_instr_seqs(false_branch_info, else_code)
+    then_code_labeled = append_instr_seqs(
+        true_branch_info,
+        then_code)
 
-    else_then_seq = parallel_instr_seqs(else_code_labeled, then_code_labeled)
-    test_gotos_then_else_seq = append_instr_seqs(test_goto_seq, else_then_seq, after_if_info)
+    else_code_labeled = append_instr_seqs(
+        false_branch_info,
+        else_code)
+
+    else_then_seq = parallel_instr_seqs(
+        else_code_labeled,
+        then_code_labeled)
+
+    test_gotos_then_else_seq = append_instr_seqs(
+        test_goto_seq,
+        else_then_seq,
+        after_if_info)
 
     preserved = [env, cont]
     return preserving(preserved, test_code, test_gotos_then_else_seq)
@@ -323,10 +334,18 @@ def comp_func_call(target, linkage):
     (compiled_labeled, compound_labeled,
      primitive_labeled) = labeled
 
-    compound_prim_para = parallel_instr_seqs(compound_labeled, primitive_labeled)
-    compiled_para = parallel_instr_seqs(compiled_labeled, compound_prim_para)
+    compound_prim_para = parallel_instr_seqs(
+        compound_labeled,
+        primitive_labeled)
 
-    return append_instr_seqs(test_seqs, compiled_para, after_call_info)
+    compiled_para = parallel_instr_seqs(
+        compiled_labeled,
+        compound_prim_para)
+
+    return append_instr_seqs(
+        test_seqs,
+        compiled_para,
+        after_call_info)
 
 
 def comp_func_app(target, linkage, func_type):
