@@ -30,7 +30,7 @@ def comp_exp(expr, target=val, linkage=nex):
         try:
             tag, *_ = expr
             comp_type = keyword_comps[tag]
-        except:
+        except KeyError:
             comp_type = comp_app
     return comp_type(expr, target, linkage)
 

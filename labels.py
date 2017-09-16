@@ -22,7 +22,7 @@ label_counts = {}
 def new_label_number(name):
     try:
         label_counts[name] += 1
-    except:
+    except KeyError:
         label_counts[name] = 1
 
     return label_counts[name]

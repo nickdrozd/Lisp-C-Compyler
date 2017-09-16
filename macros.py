@@ -52,7 +52,7 @@ def is_macro(expr):
     try:
         tag, *_ = expr
         return tag in macro_transformers
-    except:
+    except TypeError:
         return False
 
 
