@@ -99,12 +99,12 @@ def comp_if(expr, target=VAL, linkage=NEX):
 
     branches, infos = branches_and_infos(labels)
 
-    [true_branch, false_branch, after_if] = branches
-    [true_branch_info, false_branch_info, after_if_info] = infos
+    true_branch, false_branch, after_if = branches
+    true_branch_info, false_branch_info, after_if_info = infos
 
     then_link = after_if if linkage == NEX else linkage
 
-    (_, if_test, if_then, if_else) = expr
+    _, if_test, if_then, if_else = expr
 
     test_code = comp_exp(if_test, VAL, NEX)
     then_code = comp_exp(if_then, target, linkage)
@@ -154,7 +154,7 @@ def comp_seq(seq, target=VAL, linkage=NEX):
 
 
 def comp_lambda(expr, target=VAL, linkage=NEX):
-    labels = ('ENTRY', 'AFTER_LAMBDA')
+    labels = 'ENTRY', 'AFTER_LAMBDA'
 
     branches, infos = branches_and_infos(labels)
     func_entry, after_lambda = branches
@@ -312,14 +312,14 @@ def comp_func_call(target, linkage):
     )
 
     # calling comp_func_app twice generates two different end_labels
-    func_types = ('compound', 'compiled')
+    func_types = 'compound', 'compiled'
 
     comp_func_apps = [
         comp_func_app(target, end_label, func_type)
         for func_type in func_types
     ]
 
-    (compound_link, compiled_link) = comp_func_apps
+    compound_link, compiled_link = comp_func_apps
 
     primitive_link = end_with_link(linkage, apply_primitive_seq)
 
@@ -334,8 +334,7 @@ def comp_func_call(target, linkage):
         for (branch, link) in branch_links
     ]
 
-    (compiled_labeled, compound_labeled,
-     primitive_labeled) = labeled
+    compiled_labeled, compound_labeled, primitive_labeled = labeled
 
     compound_prim_para = parallel_instr_seqs(
         compound_labeled,
@@ -379,7 +378,7 @@ def comp_func_app(target, linkage, func_type):
 
     # target is func, eg in ((f 4) 5)
     elif not val_targ and not ret_link:
-        labels = ('FUNC_RETURN',)
+        labels = 'FUNC_RETURN',
         branches, infos = branches_and_infos(labels)
         (func_return,) = branches
         (func_return_info,) = infos

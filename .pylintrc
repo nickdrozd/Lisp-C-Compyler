@@ -70,7 +70,8 @@ disable=missing-docstring,
 		file-ignored,
 		attribute-defined-outside-init,
 		duplicate-code,
-		cyclic-import
+		cyclic-import,
+		trailing-comma-tuple,
 
 [REPORTS]
 

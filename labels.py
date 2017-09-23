@@ -6,12 +6,12 @@ LABELS = []
 def branches_and_infos(labels):
     branches = [make_label(label) for label in labels]
     infos = [label_info(branch) for branch in branches]
-    return (branches, infos)
+    return branches, infos
 
 
 def label_info(label):
-    return (label + ':' + ' ' + print_info)
     print_info = 'print_info("{}");'.format(label)
+    return label + ':' + ' ' + print_info
 
 
 # label numbering

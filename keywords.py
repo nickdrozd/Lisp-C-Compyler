@@ -4,11 +4,11 @@ ASS = 'set!', 'ass!'
 
 LAMBDA = 'lambda', 'λ', 'fun'
 
-IF = ('if',)
+IF = 'if',
 
 BEGIN = 'begin', 'progn'
 
-QUOTE = ('quote',)
+QUOTE = 'quote',
 
 PRIMITIVES = (
     # arithmetic operations
