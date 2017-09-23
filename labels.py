@@ -29,10 +29,8 @@ def new_label_number(name):
 
 
 def make_label(name):
-    global LABELS
-    global LABEL_COUNTS
     label = name + '_' + str(new_label_number(name))
-    LABELS += [label]
+    LABELS.append(label)
     return label
 
 
