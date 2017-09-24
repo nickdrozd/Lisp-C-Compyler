@@ -10,8 +10,7 @@ def branches_and_infos(labels):
 
 
 def label_info(label):
-    print_info = 'print_info("{}");'.format(label)
-    return label + ':' + ' ' + print_info
+    return '{}: print_info("{}");'.format(label, label)
 
 
 # label numbering
@@ -29,8 +28,10 @@ def new_label_number(name):
 
 
 def make_label(name):
-    label = name + '_' + str(new_label_number(name))
+    label = '{}_{}'.format(name, str(new_label_number(name)))
+
     LABELS.append(label)
+
     return label
 
 
