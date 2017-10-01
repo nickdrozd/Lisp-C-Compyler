@@ -18,7 +18,7 @@ LINE_ENDING = ' \\\n'
 SECTION_DIVIDER = '\n\n'
 
 
-def make_lispinc_header(expr_seq):
+def make_lispinc_header():
     comp_code = ''
 
     heading = \
@@ -40,7 +40,7 @@ def make_lispinc_header(expr_seq):
 
     comp_code += LINE_ENDING.join([
         line
-        for expr in expr_seq
+        for expr in LIBRARY
         for line in statements(comp_exp(parse(expr)))
     ] + ['goto DONE;'])
 
@@ -70,7 +70,7 @@ def make_lispinc_header(expr_seq):
 def write_lispinc_header():
     with open('comp_code.h', 'w') as comp_code:
         comp_code.write(
-            make_lispinc_header(LIBRARY))
+            make_lispinc_header())
 
 
 if __name__ == '__main__':
