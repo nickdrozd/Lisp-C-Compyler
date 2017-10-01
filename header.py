@@ -14,6 +14,10 @@ from labels import LABELS
 from library import LIBRARY
 
 
+LINE_ENDING = ' \\\n'
+SECTION_DIVIDER = '\n\n'
+
+
 def make_lispinc_header(expr_seq):
     comp_code = ''
 
@@ -34,31 +38,31 @@ def make_lispinc_header(expr_seq):
 
     comp_code += heading
 
-    comp_code += ' \\\n'.join([
+    comp_code += LINE_ENDING.join([
         line
         for expr in expr_seq
         for line in statements(comp_exp(parse(expr)))
     ] + ['goto DONE;'])
 
-    comp_code += '\n\n'
+    comp_code += SECTION_DIVIDER
 
-    comp_code += '#define COMP_CONT(REG) \\' + '\n'
+    comp_code += '#define COMP_CONT(REG)' + LINE_ENDING
 
-    comp_code += ' \\\n'.join((
+    comp_code += LINE_ENDING.join((
         'if (GETLABEL(REG) == _{}) goto {};'.format(label, label)
         for label in LABELS
     ))
 
-    comp_code += '\n\n'
+    comp_code += SECTION_DIVIDER
 
-    comp_code += '#define ALL_COMPILED_LABELS \\' + '\n'
+    comp_code += '#define ALL_COMPILED_LABELS' + LINE_ENDING
 
-    comp_code += ', \\\n'.join((
+    comp_code += (',' + LINE_ENDING).join((
         '_{}'.format(label)
         for label in LABELS
     ))
 
-    comp_code += '\n\n' + '#endif' + '\n'
+    comp_code += SECTION_DIVIDER + '#endif' + '\n'
 
     return comp_code
 
