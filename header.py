@@ -17,54 +17,67 @@ from library import LIBRARY
 LINE_ENDING = ' \\\n'
 SECTION_DIVIDER = '\n\n'
 
-
-def make_lispinc_header():
-    comp_code = ''
-
-    heading = \
+INTRO = \
 '''/*
     This code is compiler-generated!
     It may be ugly, but it sure is fast!
     Can you figure out how it works?
 
     https://github.com/nickdrozd/Lisp-C-Compyler
-*/
+*/'''
+
+
+def make_lispinc_header():
+    return \
+'''{}
 
 #ifndef COMP_CODE_GUARD
 #define COMP_CODE_GUARD
 
-#define COMPILED_CODE_BODY \\
-'''
+{}
 
-    comp_code += heading
+#endif
+'''.format(
+    INTRO,
+    SECTION_DIVIDER.join([
+        make_code_body(),
+        make_comp_cont(),
+        make_comp_labels(),
+    ]),
+)
 
-    comp_code += LINE_ENDING.join([
-        line
-        for expr in LIBRARY
-        for line in statements(comp_exp(parse(expr)))
-    ] + ['goto DONE;'])
 
-    comp_code += SECTION_DIVIDER
+def make_code_body():
+    return LINE_ENDING.join([
+        '#define COMPILED_CODE_BODY',
+        *[
+            line
+            for expr in LIBRARY
+            for line in statements(comp_exp(parse(expr)))
+        ],
+        'goto DONE;',
+    ])
 
-    comp_code += '#define COMP_CONT(REG)' + LINE_ENDING
 
-    comp_code += LINE_ENDING.join((
-        'if (GETLABEL(REG) == _{}) goto {};'.format(label, label)
-        for label in LABELS
-    ))
+def make_comp_cont():
+    return LINE_ENDING.join([
+        '#define COMP_CONT(REG)',
+        *[
+            'if (GETLABEL(REG) == _{}) goto {};'.format(label, label)
+            for label in LABELS
+        ],
+    ])
 
-    comp_code += SECTION_DIVIDER
 
-    comp_code += '#define ALL_COMPILED_LABELS' + LINE_ENDING
-
-    comp_code += (',' + LINE_ENDING).join((
-        '_{}'.format(label)
-        for label in LABELS
-    ))
-
-    comp_code += SECTION_DIVIDER + '#endif' + '\n'
-
-    return comp_code
+def make_comp_labels():
+    return LINE_ENDING.join([
+        '#define ALL_COMPILED_LABELS',
+        *[
+            '_{},'.format(label)
+            for label in LABELS[:-1]
+        ],
+        '_{}'.format(LABELS[-1]),
+    ])
 
 
 def write_lispinc_header():
