@@ -33,51 +33,30 @@ def make_lispinc_header(expr_seq):
 '''
 
     comp_code += heading
-    for expr in expr_seq:
-        parsed = parse(expr)
-        compiled = comp_exp(parsed)
-        code = statements(compiled)
 
-        for line in code:
-            comp_code += line + ' \\' + '\n'
-    comp_code += 'goto DONE;'
+    comp_code += ' \\\n'.join([
+        line
+        for expr in expr_seq
+        for line in statements(comp_exp(parse(expr)))
+    ] + ['goto DONE;'])
 
     comp_code += '\n\n'
 
-    def is_last_label(label):
-        labels_len = len(LABELS)
-        label_index = LABELS.index(label)
-        return label_index == labels_len - 1
-
     comp_code += '#define COMP_CONT(REG) \\' + '\n'
-    for label in LABELS:
-        last_label = is_last_label(label)
-        label_check = (
-            'if (GETLABEL(REG) == _' + label +
-            ') ' + 'goto ' + label + ';' +
-            ('' if last_label else ' \\' + '\n')
-        )
-        comp_code += label_check
+
+    comp_code += ' \\\n'.join((
+        'if (GETLABEL(REG) == _{}) goto {};'.format(label, label)
+        for label in LABELS
+    ))
 
     comp_code += '\n\n'
 
     comp_code += '#define ALL_COMPILED_LABELS \\' + '\n'
-    # i = 0
-    for label in LABELS:
-        undscr_label = '_' + label
-        if is_last_label(label):
-            listed_label = undscr_label
-        else:
-            listed_label = undscr_label + ', \\' + '\n'
-            # comma_label = undscr_label + ', '
-            # if i < 2:
-            #   listed_label = comma_label
-            #   i += 1
-            # else:
-            #   listed_label = comma_label + '\\' + '\n'
-            #   i = 0
 
-        comp_code += listed_label
+    comp_code += ', \\\n'.join((
+        '_{}'.format(label)
+        for label in LABELS
+    ))
 
     comp_code += '\n\n' + '#endif' + '\n'
 
