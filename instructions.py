@@ -2,18 +2,18 @@
 
 
 def make_instr_seq(needs, modifies, statements):
-    return [needs, modifies, statements]
+    return [set(needs), set(modifies), statements]
 
 
 empty_instr_seq = make_instr_seq([], [], [])
 
 
 def registers_needed(seq):
-    return [] if isinstance(seq, str) else seq[0]
+    return set() if isinstance(seq, str) else set(seq[0])
 
 
 def registers_modified(seq):
-    return [] if isinstance(seq, str) else seq[1]
+    return set() if isinstance(seq, str) else set(seq[1])
 
 
 def statements(seq):
@@ -35,8 +35,11 @@ def append_instr_seqs(*seqs):
         modified_1 = registers_modified(seq_1)
         modified_2 = registers_modified(seq_2)
 
-        needed = list_union(needed_1, list_diff(needed_2, modified_1))
-        modified = list_union(modified_1, modified_2)
+        needed = needed_1.union(
+            needed_2.difference(
+                modified_1))
+
+        modified = modified_1.union(modified_2)
 
         statements_1 = statements(seq_1)
         statements_2 = statements(seq_2)
@@ -62,11 +65,11 @@ def tack_on_instr_seq(seq, body_seq):
 def parallel_instr_seqs(seq_1, seq_2):
     needed_1 = registers_needed(seq_1)
     needed_2 = registers_needed(seq_2)
-    needed = list_union(needed_1, needed_2)
+    needed = needed_1.union(needed_2)
 
     modified_1 = registers_modified(seq_1)
     modified_2 = registers_modified(seq_2)
-    modified = list_union(modified_1, modified_2)
+    modified = modified_1.union(modified_2)
 
     statements_1 = statements(seq_1)
     statements_2 = statements(seq_2)
@@ -91,8 +94,8 @@ def preserving(regs, seq_1, seq_2):
     restore = 'restore({});'.format(first_reg)
     seq_1_pres_instr = [save] + seq_1_statements + [restore]
 
-    first_seq_1_needs = list_union([first_reg], registers_needed(seq_1))
-    first_seq_1_mods = list_diff(registers_modified(seq_1), [first_reg])
+    first_seq_1_needs = registers_needed(seq_1).union({first_reg})
+    first_seq_1_mods = registers_modified(seq_1).difference({first_reg})
 
     pres_instr_seq = make_instr_seq(
         first_seq_1_needs,
@@ -101,21 +104,3 @@ def preserving(regs, seq_1, seq_2):
     )
 
     return preserving(rest_regs, pres_instr_seq, seq_2)
-
-
-def list_union(s_1, s_2):
-    result = []
-    for i in s_1:
-        result += [i]
-    for i in s_2:
-        if i not in result:
-            result += [i]
-    return result
-
-
-def list_diff(s_1, s_2):
-    result = []
-    for i in s_1:
-        if i not in s_2:
-            result += [i]
-    return result
