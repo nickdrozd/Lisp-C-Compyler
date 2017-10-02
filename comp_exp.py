@@ -13,7 +13,7 @@ import keywords
 from registers import CONT, ENV, VAL, FUNC, ARGLIST, ALL_REGS
 
 from instructions import preserving, \
-    make_instr_seq, tack_on_instr_seq, \
+    InstrSeq, tack_on_instr_seq, \
     append_instr_seqs, parallel_instr_seqs
 
 from linkage import RET, NEX, end_with_link
@@ -47,7 +47,7 @@ def comp_num(expr, target, linkage):
 
     return end_with_link(
         linkage,
-        make_instr_seq(
+        InstrSeq(
             [ENV],
             [target],
             [instr]))
@@ -58,7 +58,7 @@ def comp_var(expr, target, linkage):
 
     return end_with_link(
         linkage,
-        make_instr_seq(
+        InstrSeq(
             [ENV],
             [target],
             [instr]))
@@ -72,7 +72,7 @@ def comp_quote(expr, target, linkage):
 
     return end_with_link(
         linkage,
-        make_instr_seq(
+        InstrSeq(
             [],
             [target],
             [instr]))
@@ -109,7 +109,7 @@ def comp_ass_def(c_func):
             preserving(
                 [ENV],
                 value_code,
-                make_instr_seq(
+                InstrSeq(
                     [ENV, VAL],
                     [target],
                     [instr])))
@@ -143,7 +143,7 @@ def comp_if(expr, target=VAL, linkage=NEX):
         [ENV, CONT],
         test_code,
         append_instr_seqs(
-            make_instr_seq(
+            InstrSeq(
                 [VAL],
                 [],
                 [true_instr]),
@@ -192,7 +192,7 @@ def comp_lambda(expr, target=VAL, linkage=NEX):
         tack_on_instr_seq(
             end_with_link(
                 lambda_link,
-                make_instr_seq(
+                InstrSeq(
                     [ENV],
                     [target],
                     [instr])),
@@ -213,7 +213,7 @@ def comp_lambda_body(expr, func_entry_info):
     body_seq = comp_seq(body, VAL, RET)
 
     return append_instr_seqs(
-        make_instr_seq(
+        InstrSeq(
             [ENV, FUNC, ARGLIST],
             [ENV],
             instr_list),
@@ -232,7 +232,7 @@ def comp_app(expr, target=VAL, linkage=NEX):
     func_call_code = (
         end_with_link(
             linkage,
-            make_instr_seq(
+            InstrSeq(
                 [FUNC, ARGLIST],
                 [target],
                 [prim_call]))
@@ -256,14 +256,14 @@ def construct_arglist(arg_codes):
     if not arg_codes:
         instr = "arglist = NULLOBJ;"
 
-        return make_instr_seq(
+        return InstrSeq(
             [],
             [ARGLIST],
             [instr])
 
     instr = "arglist = CONS(val, NULLOBJ);"
 
-    instr_seq = make_instr_seq(
+    instr_seq = InstrSeq(
         [VAL],
         [ARGLIST],
         [instr])
@@ -289,7 +289,7 @@ def code_to_get_rest_args(arg_codes):
     code_for_next_arg = preserving(
         [ARGLIST],
         next_arg,
-        make_instr_seq(
+        InstrSeq(
             [VAL, ARGLIST],
             [ARGLIST],
             [instr]))
@@ -319,12 +319,12 @@ def comp_func_call(target, linkage):
     def make_test_goto_seq(test, label):
         instr = 'if ({}(func)) goto {};'.format(test, label)
 
-        return make_instr_seq(
+        return InstrSeq(
             [FUNC],
             [],
             [instr])
 
-    apply_primitive_seq = make_instr_seq(
+    apply_primitive_seq = InstrSeq(
         [FUNC, ARGLIST],
         [target],
         ['{} = applyPrimitive(func, arglist);'.format(target)]
@@ -378,7 +378,7 @@ def comp_func_app(target, linkage, func_type):
         # common instructions
         assign_cont = "cont = LABELOBJ(_{});".format(linkage)
 
-        return make_instr_seq(
+        return InstrSeq(
             [FUNC],
             ALL_REGS,
             [assign_cont,
@@ -397,14 +397,14 @@ def comp_func_app(target, linkage, func_type):
             'goto {};'.format(linkage),
         ]
 
-        return make_instr_seq(
+        return InstrSeq(
             [FUNC],
             ALL_REGS,
             instr_list)
 
     # this gets called, but I don't understand when
     elif val_targ and ret_link:
-        return make_instr_seq(
+        return InstrSeq(
             [FUNC, CONT],
             ALL_REGS,
             func_list)

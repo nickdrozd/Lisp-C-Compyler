@@ -1,5 +1,5 @@
 from registers import CONT
-from instructions import make_instr_seq, empty_instr_seq, preserving
+from instructions import InstrSeq, empty_instr_seq, preserving
 
 RET = 'return'
 NEX = 'next'
@@ -7,12 +7,12 @@ NEX = 'next'
 
 def compile_linkage(linkage):
     if linkage == RET:
-        return make_instr_seq([CONT], [], ['goto CONTINUE;'])
+        return InstrSeq([CONT], [], ['goto CONTINUE;'])
 
     elif linkage == NEX:
         return empty_instr_seq
 
-    return make_instr_seq([], [], ['goto {};'.format(linkage)])
+    return InstrSeq([], [], ['goto {};'.format(linkage)])
 
 
 def end_with_link(linkage, instr_seq):

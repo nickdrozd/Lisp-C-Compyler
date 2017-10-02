@@ -1,23 +1,32 @@
 # instructions
 
 
-def make_instr_seq(needs, modifies, statements):
-    return [set(needs), set(modifies), statements]
+class InstrSeq:
+    def __init__(self, needed, modified, statements):
+        self.needed = set(needed)
+        self.modified = set(modified)
+        self.statements = statements
+
+    def needs_register(self, reg):
+        return reg in self.needed
+
+    def modifies_register(self, reg):
+        return reg in self.modified
 
 
-empty_instr_seq = make_instr_seq([], [], [])
+empty_instr_seq = InstrSeq([], [], [])
 
 
 def registers_needed(seq):
-    return set() if isinstance(seq, str) else set(seq[0])
+    return set() if isinstance(seq, str) else seq.needed
 
 
 def registers_modified(seq):
-    return set() if isinstance(seq, str) else set(seq[1])
+    return set() if isinstance(seq, str) else seq.modified
 
 
 def statements(seq):
-    return [seq] if isinstance(seq, str) else seq[2]
+    return [seq] if isinstance(seq, str) else seq.statements
 
 
 def needs_register(seq, reg):
@@ -45,7 +54,7 @@ def append_instr_seqs(*seqs):
         statements_2 = statements(seq_2)
         statement_seq = statements_1 + statements_2
 
-        return make_instr_seq(needed, modified, statement_seq)
+        return InstrSeq(needed, modified, statement_seq)
 
     return_seq = empty_instr_seq
 
@@ -59,7 +68,7 @@ def tack_on_instr_seq(seq, body_seq):
     needed = registers_needed(seq)
     modified = registers_modified(seq)
     statement_seq = statements(seq) + statements(body_seq)
-    return make_instr_seq(needed, modified, statement_seq)
+    return InstrSeq(needed, modified, statement_seq)
 
 
 def parallel_instr_seqs(seq_1, seq_2):
@@ -75,7 +84,7 @@ def parallel_instr_seqs(seq_1, seq_2):
     statements_2 = statements(seq_2)
     statement_seq = statements_1 + statements_2
 
-    return make_instr_seq(needed, modified, statement_seq)
+    return InstrSeq(needed, modified, statement_seq)
 
 
 def preserving(regs, seq_1, seq_2):
@@ -97,7 +106,7 @@ def preserving(regs, seq_1, seq_2):
     first_seq_1_needs = registers_needed(seq_1).union({first_reg})
     first_seq_1_mods = registers_modified(seq_1).difference({first_reg})
 
-    pres_instr_seq = make_instr_seq(
+    pres_instr_seq = InstrSeq(
         first_seq_1_needs,
         first_seq_1_mods,
         seq_1_pres_instr
