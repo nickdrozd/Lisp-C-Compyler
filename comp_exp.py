@@ -25,7 +25,8 @@ from llh import is_self_evaluating, is_var
 
 #----------------------------------#
 
-def comp_exp(expr, target=VAL, linkage=NEX):
+from typing import Any, Callable, List
+def comp_exp(expr: Any, target: str = VAL, linkage: str = NEX) -> InstrSeq:
     expr = transform_macros(expr)
 
     if is_self_evaluating(expr):
@@ -42,7 +43,7 @@ def comp_exp(expr, target=VAL, linkage=NEX):
 
 #----------------------------------#
 
-def comp_num(expr, target, linkage):
+def comp_num(expr: int, target: str, linkage: str) -> InstrSeq:
     instr = "{} = NUMOBJ({});".format(target, expr)
 
     return end_with_link(
@@ -53,7 +54,7 @@ def comp_num(expr, target, linkage):
             [instr]))
 
 
-def comp_var(expr, target, linkage):
+def comp_var(expr: str, target: str, linkage: str) -> InstrSeq:
     instr = "{} = lookup(NAMEOBJ(\"{}\"), env);".format(target, expr)
 
     return end_with_link(
@@ -64,7 +65,7 @@ def comp_var(expr, target, linkage):
             [instr]))
 
 
-def comp_quote(expr, target, linkage):
+def comp_quote(expr: List[str], target: str, linkage: str) -> InstrSeq:
     _, text = expr
     lisp_text = schemify(text)
 
@@ -78,7 +79,7 @@ def comp_quote(expr, target, linkage):
             [instr]))
 
 
-def comp_ass_def(c_func):
+def comp_ass_def(c_func: str) -> Callable:
     "c_func is string"
 
     def is_sugar_def(exp):
@@ -122,7 +123,7 @@ comp_ass = comp_ass_def('setVar')
 comp_def = comp_ass_def('defineVar')
 
 
-def comp_if(expr, target=VAL, linkage=NEX):
+def comp_if(expr: Any, target: str = VAL, linkage: str = NEX) -> InstrSeq:
     branches, infos = branches_and_infos(
         ('TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF'))
 
@@ -163,7 +164,7 @@ def comp_begin(expr, target=VAL, linkage=NEX):
     return comp_seq(seq, target, linkage)
 
 
-def comp_seq(seq, target=VAL, linkage=NEX):
+def comp_seq(seq: Any, target: str = VAL, linkage: str = NEX) -> InstrSeq:
     first, *rest = seq
 
     if not rest:
@@ -178,7 +179,7 @@ def comp_seq(seq, target=VAL, linkage=NEX):
         comp_rest)
 
 
-def comp_lambda(expr, target=VAL, linkage=NEX):
+def comp_lambda(expr: Any, target: str = VAL, linkage: str = NEX) -> InstrSeq:
     branches, infos = branches_and_infos(('ENTRY', 'AFTER_LAMBDA'))
     func_entry, after_lambda = branches
     func_entry_info, after_lambda_info = infos
@@ -200,7 +201,7 @@ def comp_lambda(expr, target=VAL, linkage=NEX):
         after_lambda_info)
 
 
-def comp_lambda_body(expr, func_entry_info):
+def comp_lambda_body(expr: Any, func_entry_info: str) -> InstrSeq:
     _, params, *body = expr
 
     instr_list = [
@@ -220,7 +221,7 @@ def comp_lambda_body(expr, func_entry_info):
         body_seq)
 
 
-def comp_app(expr, target=VAL, linkage=NEX):
+def comp_app(expr: Any, target: str = VAL, linkage: str = NEX) -> InstrSeq:
     function, *arguments = expr
 
     func_code = comp_exp(function, target=FUNC)
@@ -250,7 +251,7 @@ def comp_app(expr, target=VAL, linkage=NEX):
     )
 
 
-def construct_arglist(arg_codes):
+def construct_arglist(arg_codes: List[InstrSeq]) -> InstrSeq:
     arg_codes = arg_codes[::-1]
 
     if not arg_codes:
@@ -281,7 +282,7 @@ def construct_arglist(arg_codes):
         code_to_get_rest_args(rest_args))
 
 
-def code_to_get_rest_args(arg_codes):
+def code_to_get_rest_args(arg_codes: List[InstrSeq]) -> InstrSeq:
     next_arg, *rest_args = arg_codes
 
     instr = "arglist = CONS(val, arglist);"
@@ -303,7 +304,7 @@ def code_to_get_rest_args(arg_codes):
         code_to_get_rest_args(rest_args))
 
 
-def comp_func_call(target, linkage):
+def comp_func_call(target: str, linkage: str) -> InstrSeq:
     branches, infos = branches_and_infos((
         'PRIMITIVE', 'COMPOUND',
         'COMPILED', 'AFTER_CALL'
@@ -356,7 +357,7 @@ def comp_func_call(target, linkage):
         after_call_info)
 
 
-def comp_func_app(target, linkage, func_type):
+def comp_func_app(target: str, linkage: str, func_type: str) -> InstrSeq:
     "func_type as string: 'compiled' or 'compound'"
     val_targ = target == VAL
     ret_link = linkage == RET

@@ -5,7 +5,7 @@ RET = 'return'
 NEX = 'next'
 
 
-def compile_linkage(linkage):
+def compile_linkage(linkage: str) -> InstrSeq:
     if linkage == RET:
         return InstrSeq([CONT], [], ['goto CONTINUE;'])
 
@@ -15,7 +15,7 @@ def compile_linkage(linkage):
     return InstrSeq([], [], ['goto {};'.format(linkage)])
 
 
-def end_with_link(linkage, instr_seq):
+def end_with_link(linkage: str, instr_seq: InstrSeq) -> InstrSeq:
     return preserving(
         [CONT],
         instr_seq,

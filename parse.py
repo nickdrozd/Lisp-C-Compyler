@@ -13,11 +13,12 @@ as any of mine.)
 
 # primary functions
 
-def parse(program):
+from typing import Any, List, Union
+def parse(program: str) -> Any:
     "Read a Scheme expression from a string."
     return read_from_tokens(tokenize(program))
 
-def schemify(exp):
+def schemify(exp: Union[str, List[str]]) -> str:
     "Convert a Python object back into a Scheme-readable string."
     if isinstance(exp, List):
         return '(' + ' '.join(map(schemify, exp)) + ')'
@@ -26,11 +27,11 @@ def schemify(exp):
 
 # helpers
 
-def tokenize(chars):
+def tokenize(chars: str) -> List[str]:
     "Convert a string of characters into a list of tokens."
     return chars.replace('(', ' ( ').replace(')', ' ) ').split()
 
-def read_from_tokens(tokens):
+def read_from_tokens(tokens: List[str]) -> Any:
     "Read an expression from a sequence of tokens."
     if len(tokens) == 0:
         raise SyntaxError('unexpected EOF while reading')
@@ -46,7 +47,7 @@ def read_from_tokens(tokens):
     else:
         return atom(token)
 
-def atom(token):
+def atom(token: str) -> Union[int, str]:
     "Numbers become numbers; every other token is a symbol."
     try: return int(token)
     except ValueError:

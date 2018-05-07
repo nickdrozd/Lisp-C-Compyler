@@ -1,15 +1,16 @@
 # labels
 
+from typing import List, Tuple, Union
 LABELS = []
 
 
-def branches_and_infos(labels):
+def branches_and_infos(labels: Union[Tuple[str, str, str], Tuple[str, str, str, str], Tuple[str, str]]) -> Tuple[List[str], List[str]]:
     branches = [make_label(label) for label in labels]
     infos = [label_info(branch) for branch in branches]
     return branches, infos
 
 
-def label_info(label):
+def label_info(label: str) -> str:
     return '{}: print_info("{}");'.format(label, label)
 
 
@@ -18,7 +19,7 @@ def label_info(label):
 LABEL_COUNTS = {}
 
 
-def new_label_number(name):
+def new_label_number(name: str) -> int:
     try:
         LABEL_COUNTS[name] += 1
     except KeyError:
@@ -27,7 +28,7 @@ def new_label_number(name):
     return LABEL_COUNTS[name]
 
 
-def make_label(name):
+def make_label(name: str) -> str:
     label = '{}_{}'.format(name, str(new_label_number(name)))
 
     LABELS.append(label)

@@ -37,5 +37,5 @@ PRIMITIVES = (
     'applyNilFunc', 'applyOneFunc', 'applyTwoFunc',
 )
 
-def is_primitive(function_name):
+def is_primitive(function_name: str) -> bool:
     return function_name in PRIMITIVES

@@ -1,3 +1,4 @@
+from typing import Any
 def transform_or(exp):
     if not exp[1:]:
         return 0
@@ -48,7 +49,7 @@ MACRO_TRANSFORMERS = {
 }
 
 
-def is_macro(expr):
+def is_macro(expr: Any) -> bool:
     try:
         tag, *_ = expr
         return tag in MACRO_TRANSFORMERS
@@ -61,7 +62,7 @@ def transform_macro(expr):
     return MACRO_TRANSFORMERS[tag](expr)
 
 
-def transform_macros(expr):
+def transform_macros(expr: Any) -> Any:
     while is_macro(expr):
         expr = transform_macro(expr)
 
