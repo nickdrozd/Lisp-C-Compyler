@@ -1,7 +1,6 @@
 [MESSAGES CONTROL]
 
 disable=
-  bare-except,
   global-statement,
   import-error,
   inconsistent-return-statements,

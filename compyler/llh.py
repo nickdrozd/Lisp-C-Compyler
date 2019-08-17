@@ -8,7 +8,7 @@ def isSelfEvaluating(exp):
 def isNum(exp):
     try:
         return type(int(exp)) == int
-    except:
+    except (TypeError, ValueError):
         return False
 
 # variables

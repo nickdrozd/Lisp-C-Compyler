@@ -48,9 +48,10 @@ macro_transformers = {
 def isMacro(expr):
     try:
         tag, *_ = expr
-        return tag in macro_transformers
-    except:
+    except TypeError:
         return False
+
+    return tag in macro_transformers
 
 def transformMacro(expr):
     tag, *_ = expr
