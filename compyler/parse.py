@@ -3,8 +3,8 @@ From Peter Novrig's "Lispy"
 
 http://norvig.com/lispy.html
 
-(I've written my own parsers, but it's a pain 
-in the ass and this one is at least as good 
+(I've written my own parsers, but it's a pain
+in the ass and this one is at least as good
 as any of mine.)
 '''
 
@@ -17,7 +17,7 @@ def parse(program):
 def schemify(exp):
     "Convert a Python object back into a Scheme-readable string."
     if isinstance(exp, List):
-        return '(' + ' '.join(map(schemify, exp)) + ')' 
+        return '(' + ' '.join(map(schemify, exp)) + ')'
     else:
         return str(exp)
 
@@ -51,6 +51,7 @@ def atom(token):
         except ValueError:
             return Symbol(token)
 
+# pylint: disable=bad-whitespace
 Symbol = str          # A Scheme Symbol is implemented as a Python str
 List   = list         # A Scheme List is implemented as a Python list
 Number = (int, float) # A Scheme Number is implemented as a Python int or float

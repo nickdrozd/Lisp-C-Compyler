@@ -1,8 +1,6 @@
 [MESSAGES CONTROL]
 
 disable=
-  bad-continuation,
-  bad-whitespace,
   bare-except,
   global-statement,
   import-error,
@@ -10,8 +8,6 @@ disable=
   invalid-name,
   misplaced-comparison-constant,
   missing-docstring,
-  missing-final-newline,
-  mixed-indentation,
   multiple-statements,
   no-else-return,
   no-name-in-module,
@@ -19,8 +15,6 @@ disable=
   redefined-outer-name,
   superfluous-parens,
   too-many-locals,
-  trailing-newlines,
-  trailing-whitespace,
   unused-argument,
   undefined-variable,
   unidiomatic-typecheck,
