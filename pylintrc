@@ -13,7 +13,6 @@ disable=
   no-name-in-module,
   possibly-unused-variable,
   redefined-outer-name,
-  superfluous-parens,
   too-many-locals,
   unused-argument,
   undefined-variable,

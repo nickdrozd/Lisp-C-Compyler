@@ -11,7 +11,7 @@ def branchesAndInfos(labels):
 
 def labelInfo(label):
     print_info = 'print_info("%(label)s");' % locals()
-    return (label + ':' + ' ' + print_info)
+    return label + ':' + ' ' + print_info
 
 
 # label numbering
