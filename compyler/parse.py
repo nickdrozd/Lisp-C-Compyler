@@ -45,9 +45,11 @@ def read_from_tokens(tokens):
 
 def atom(token):
     "Numbers become numbers; every other token is a symbol."
-    try: return int(token)
+    try:
+        return int(token)
     except ValueError:
-        try: return float(token)
+        try:
+            return float(token)
         except ValueError:
             return Symbol(token)
 

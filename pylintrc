@@ -6,7 +6,6 @@ disable=
   inconsistent-return-statements,
   invalid-name,
   missing-docstring,
-  multiple-statements,
   no-else-return,
   no-name-in-module,
   possibly-unused-variable,
