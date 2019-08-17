@@ -7,11 +7,11 @@ def isSelfEvaluating(exp):
 
 def isNum(exp):
     try:
-        return type(int(exp)) == int
+        return isinstance(exp, int)
     except (TypeError, ValueError):
         return False
 
 # variables
 
 def isVar(exp):
-    return type(exp) == str
+    return isinstance(exp, str)

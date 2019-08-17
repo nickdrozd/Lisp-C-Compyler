@@ -62,7 +62,7 @@ def compAssDef(CFunc):
 
     def isSugarDef(exp):
     # list? tuple? something more general?
-        return type(exp[1]) == list
+        return isinstance(exp[1], list)
 
     def transformSugarDef(exp):
         if not isSugarDef(exp):
