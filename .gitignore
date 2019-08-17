@@ -2,6 +2,6 @@ __pycache__
 *.pyc
 
 *.c
-*.h
+# *.h
 
 *.txt
