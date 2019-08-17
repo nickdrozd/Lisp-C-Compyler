@@ -5,7 +5,6 @@ disable=
   import-error,
   inconsistent-return-statements,
   invalid-name,
-  misplaced-comparison-constant,
   missing-docstring,
   multiple-statements,
   no-else-return,
