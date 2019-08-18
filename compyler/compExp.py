@@ -132,11 +132,11 @@ def compSeq(seq, target=val, linkage=nex):
     first, *rest = seq
     if not rest:
         return compExp(first, target, linkage)
-    else:
-        compFirst = compExp(first, target, nex)
-        compRest = compSeq(rest, target, linkage)
-        preserved = [env, cont]
-        return preserving(preserved, compFirst, compRest)
+
+    compFirst = compExp(first, target, nex)
+    compRest = compSeq(rest, target, linkage)
+    preserved = [env, cont]
+    return preserving(preserved, compFirst, compRest)
 
 
 def compLambda(expr, target=val, linkage=nex):
@@ -216,10 +216,14 @@ def constructArglist(argCodes):
 
     codeToGetLastArg = appendInstrSeqs(lastArg, instrSeq)
 
-    if not restArgs:
-        return codeToGetLastArg
-    else:
-        return preserving([env], codeToGetLastArg, codeToGetRestArgs(restArgs))
+    return (
+        codeToGetLastArg
+        if not restArgs else
+        preserving(
+            [env],
+            codeToGetLastArg,
+            codeToGetRestArgs(restArgs))
+    )
 
 
 def codeToGetRestArgs(argCodes):
@@ -228,10 +232,14 @@ def codeToGetRestArgs(argCodes):
     instrSeq = makeInstrSeq([val, arglist], [arglist], [instr])
     codeForNextArg = preserving([arglist], nextArg, instrSeq)
 
-    if not restArgs:
-        return codeForNextArg
-    else:
-        return preserving([env], codeForNextArg, codeToGetRestArgs(restArgs))
+    return (
+        codeForNextArg
+        if not restArgs else
+        preserving(
+            [env],
+            codeForNextArg,
+            codeToGetRestArgs(restArgs))
+    )
 
 
 def compFuncCall(target, linkage):
@@ -294,6 +302,7 @@ def compFuncCall(target, linkage):
     return appendInstrSeqs(testSeqs, compiledPara, afterCallInfo)
 
 
+# pylint: disable=inconsistent-return-statements
 def compFuncApp(target, linkage, funcType):
     "funcType as string: 'compiled' or 'compound'"
     valTarg = target == val
@@ -319,9 +328,8 @@ def compFuncApp(target, linkage, funcType):
 
         return makeInstrSeq([func], allRegs, instrList)
 
-
     # target is func, eg in ((f 4) 5)
-    elif not valTarg and not retLink:
+    if not valTarg and not retLink:
         labels = ('FUNC_RETURN',)
         branches, infos = branchesAndInfos(labels)
         (funcReturn,) = branches
@@ -340,15 +348,13 @@ def compFuncApp(target, linkage, funcType):
 
         return makeInstrSeq([func], allRegs, instrList)
 
-
     # this gets called, but I don't understand when
-    elif valTarg and retLink:
+    if valTarg and retLink:
         instrList = compiledList if isCompiled else compoundList
 
         return makeInstrSeq([func, cont], allRegs, instrList)
 
-    else:
-        Exception('bad function call', 'compFuncApp')
+    Exception('bad function call', 'compFuncApp')
 
 #----------------------------------#
 

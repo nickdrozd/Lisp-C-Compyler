@@ -1,10 +1,10 @@
 def transformOr(exp):
     if len(exp[1:]) == 0:
         return 0
-    else:
-        first = exp[1]
-        rest = transformOr(['or'] + exp[2:])
-        return ['if', first, 1, rest]
+
+    first = exp[1]
+    rest = transformOr(['or'] + exp[2:])
+    return ['if', first, 1, rest]
 
 def transformCond(exp):
     _, *condPairs = exp

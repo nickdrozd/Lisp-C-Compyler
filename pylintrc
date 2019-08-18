@@ -3,10 +3,8 @@
 disable=
   global-statement,
   import-error,
-  inconsistent-return-statements,
   invalid-name,
   missing-docstring,
-  no-else-return,
   no-name-in-module,
   redefined-outer-name,
   too-many-locals,

@@ -16,10 +16,11 @@ def parse(program):
 
 def schemify(exp):
     "Convert a Python object back into a Scheme-readable string."
-    if isinstance(exp, List):
-        return '(' + ' '.join(map(schemify, exp)) + ')'
-    else:
-        return str(exp)
+    return (
+        str(exp)
+        if not isinstance(exp, List) else
+        '(' + ' '.join(map(schemify, exp)) + ')'
+    )
 
 # helpers
 
@@ -31,17 +32,21 @@ def read_from_tokens(tokens):
     "Read an expression from a sequence of tokens."
     if len(tokens) == 0:
         raise SyntaxError('unexpected EOF while reading')
+
     token = tokens.pop(0)
-    if token == '(':
-        L = []
-        while tokens[0] != ')':
-            L.append(read_from_tokens(tokens))
-        tokens.pop(0) # pop off ')'
-        return L
-    elif token == ')':
+
+    if token == ')':
         raise SyntaxError('unexpected )')
-    else:
+
+    if token != '(':
         return atom(token)
+
+    L = []
+    while tokens[0] != ')':
+        L.append(read_from_tokens(tokens))
+    tokens.pop(0) # pop off ')'
+    return L
+
 
 def atom(token):
     "Numbers become numbers; every other token is a symbol."

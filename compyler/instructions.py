@@ -9,22 +9,16 @@ emptyInstrSeq = makeInstrSeq([], [], [])
 
 
 def registersNeeded(seq):
-    if isinstance(seq, str):
-        return []
-    else:
-        return seq[0]
+    return [] if isinstance(seq, str) else seq[0]
+
 
 def registersModified(seq):
-    if isinstance(seq, str):
-        return []
-    else:
-        return seq[1]
+    return [] if isinstance(seq, str) else seq[1]
+
 
 def statements(seq):
-    if isinstance(seq, str):
-        return [seq]
-    else:
-        return seq[2]
+    return [seq] if isinstance(seq, str) else seq[2]
+
 
 def needsRegister(seq, reg):
     return reg in registersNeeded(seq)
@@ -84,24 +78,24 @@ def parallelInstrSeqs(seq1, seq2):
 def preserving(regs, seq1, seq2):
     if len(regs) == 0:
         return appendInstrSeqs(seq1, seq2)
-    else:
-        firstReg = regs[0]
-        restRegs = regs[1:]
-        needsFirst = needsRegister(seq2, firstReg)
-        modifiesFirst = modifiesRegister(seq1, firstReg)
-        if needsFirst and modifiesFirst:
-            save = f"save({firstReg});"
-            seq1Statements = statements(seq1)
-            restore = f"restore({firstReg});"
-            seq1PresInstr = [save] + seq1Statements + [restore]
 
-            firstSeq1Needs = listUnion([firstReg], registersNeeded(seq1))
-            firstSeq1Mods = listDiff(registersModified(seq1), [firstReg])
+    firstReg = regs[0]
+    restRegs = regs[1:]
+    needsFirst = needsRegister(seq2, firstReg)
+    modifiesFirst = modifiesRegister(seq1, firstReg)
+    if not (needsFirst and modifiesFirst):
+        return preserving(restRegs, seq1, seq2)
 
-            presInstrSeq = makeInstrSeq(firstSeq1Needs, firstSeq1Mods, seq1PresInstr)
-            return preserving(restRegs, presInstrSeq, seq2)
-        else:
-            return preserving(restRegs, seq1, seq2)
+    save = f"save({firstReg});"
+    seq1Statements = statements(seq1)
+    restore = f"restore({firstReg});"
+    seq1PresInstr = [save] + seq1Statements + [restore]
+
+    firstSeq1Needs = listUnion([firstReg], registersNeeded(seq1))
+    firstSeq1Mods = listDiff(registersModified(seq1), [firstReg])
+
+    presInstrSeq = makeInstrSeq(firstSeq1Needs, firstSeq1Mods, seq1PresInstr)
+    return preserving(restRegs, presInstrSeq, seq2)
 
 
 def listUnion(s1, s2):
