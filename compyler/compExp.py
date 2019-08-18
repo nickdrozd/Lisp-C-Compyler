@@ -8,17 +8,42 @@ TODO:
     * move out keyword_groups (how?)
 '''
 
-from registers import *
-from keywords import *
+from registers import (
+    cont,
+    env,
+    val,
+    func,
+    arglist,
+    allRegs,
+)
+from keywords import (
+    define_keys,
+    ass_keys,
+    lambda_keys,
+    if_keys,
+    begin_keys,
+    quote_keys,
+)
 from primitives import primitives
-
-from instructions import *
-from linkage import *
-
+from instructions import (
+    appendInstrSeqs,
+    makeInstrSeq,
+    parallelInstrSeqs,
+    preserving,
+    tackOnInstrSeq,
+)
+from linkage import (
+    nex,
+    ret,
+    endWithLink,
+)
 from labels import branchesAndInfos
 from parse import schemify
 from macros import transformMacros
-from llh import *
+from llh import (
+    isVar,
+    isSelfEvaluating,
+)
 
 #----------------------------------#
 
@@ -68,9 +93,9 @@ def compAssDef(CFunc):
         if not isSugarDef(exp):
             return exp
         _, funcArgs, *body = exp
-        func, *args = funcArgs
+        f, *args = funcArgs
         lambdaExp = ['lambda', args] + body
-        return ['define', func, lambdaExp]
+        return ['define', f, lambdaExp]
 
     def comp(expr, target, linkage):
         expr = transformSugarDef(expr)
@@ -93,34 +118,28 @@ compDef = compAssDef('defineVar')
 
 
 def compIf(expr, target=val, linkage=nex):
-    labels = ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF']
-
-    branches, infos = branchesAndInfos(labels)
-
-    [trueBranch, _, afterIf] = branches
-    [trueBranchInfo, falseBranchInfo, afterIfInfo] = infos
-
-    thenLink = afterIf if linkage == nex else linkage
+    (trueBranch, _, afterIf), (trueBranchInfo, falseBranchInfo, afterIfInfo) = \
+    branchesAndInfos(
+        ['TRUE_BRANCH', 'FALSE_BRANCH', 'AFTER_IF'])
 
     (_, ifTest, ifThen, ifElse) = expr
 
     testCode = compExp(ifTest, val, nex)
     thenCode = compExp(ifThen, target, linkage)
-    elseCode = compExp(ifElse, target, thenLink)
+    elseCode = compExp(ifElse, target, afterIf if linkage == nex else linkage)
 
-    isTrueInstr = "if (isTrue(val)) "
-    gotoTrueInstr = f"goto {trueBranch};"
-    instrList = [isTrueInstr + gotoTrueInstr]
-    testGotoSeq = makeInstrSeq([val], [], instrList)
-
-    thenCodeLabeled = appendInstrSeqs(trueBranchInfo, thenCode)
-    elseCodeLabeled = appendInstrSeqs(falseBranchInfo, elseCode)
-
-    elseThenSeq = parallelInstrSeqs(elseCodeLabeled, thenCodeLabeled)
-    testGotosThenElseSeq = appendInstrSeqs(testGotoSeq, elseThenSeq, afterIfInfo)
-
-    preserved = [env, cont]
-    return preserving(preserved, testCode, testGotosThenElseSeq)
+    return preserving(
+        [env, cont],
+        testCode,
+        appendInstrSeqs(
+            makeInstrSeq(
+                [val],
+                [],
+                [f"if (isTrue(val)) goto {trueBranch};"]),
+            parallelInstrSeqs(
+                appendInstrSeqs(falseBranchInfo, elseCode),
+                appendInstrSeqs(trueBranchInfo, thenCode)),
+            afterIfInfo))
 
 
 def compBegin(expr, target=val, linkage=nex):
@@ -140,23 +159,19 @@ def compSeq(seq, target=val, linkage=nex):
 
 
 def compLambda(expr, target=val, linkage=nex):
-    labels = ('ENTRY', 'AFTER_LAMBDA')
+    (funcEntry, afterLambda), (funcEntryInfo, afterLambdaInfo) = \
+        branchesAndInfos(('ENTRY', 'AFTER_LAMBDA'))
 
-    branches, infos = branchesAndInfos(labels)
-    funcEntry, afterLambda = branches
-    funcEntryInfo, afterLambdaInfo = infos
-
-    lambdaLink = afterLambda if linkage == nex else linkage
-    lambdaBody = compLambdaBody(expr, funcEntryInfo)
-
-    instr = f"{target} = COMPOBJ(_{funcEntry}, env);"
-    instrSeq = makeInstrSeq([env], [target], [instr])
-
-    instrLinked = endWithLink(lambdaLink, instrSeq)
-    tackedOn = tackOnInstrSeq(instrLinked, lambdaBody)
-    appended = appendInstrSeqs(tackedOn, afterLambdaInfo)
-
-    return appended
+    return appendInstrSeqs(
+        tackOnInstrSeq(
+            endWithLink(
+                afterLambda if linkage == nex else linkage,
+                makeInstrSeq(
+                    [env],
+                    [target],
+                    [f"{target} = COMPOBJ(_{funcEntry}, env);"])),
+            compLambdaBody(expr, funcEntryInfo)),
+        afterLambdaInfo)
 
 
 def compLambdaBody(expr, funcEntryInfo):
@@ -243,12 +258,12 @@ def codeToGetRestArgs(argCodes):
 
 
 def compFuncCall(target, linkage):
-    labels = (
-        'PRIMITIVE', 'COMPOUND',
-        'COMPILED', 'AFTER_CALL'
-    )
-
-    branches, infos = branchesAndInfos(labels)
+    branches, infos = branchesAndInfos((
+        'PRIMITIVE',
+        'COMPOUND',
+        'COMPILED',
+        'AFTER_CALL',
+    ))
 
     (primitiveBranch, compoundBranch, _, afterCall) = branches
 
@@ -259,47 +274,40 @@ def compFuncCall(target, linkage):
 
     endLabel = afterCall if linkage == nex else linkage
 
+    applyPrimitiveSeq = makeInstrSeq(
+        [func, arglist],
+        [target],
+        [f"{target} = applyPrimitive(func, arglist);"])
+
     def makeTestGotoSeq(testString, label):
-        test = f"if ({testString}(func)) "
-        goto = f"goto {label};"
-        instrList = [test + goto]
-        return makeInstrSeq([func], [], instrList)
-
-    testPrimitiveSeq = makeTestGotoSeq('isPrimitive', primitiveBranch)
-    testCompoundSeq = makeTestGotoSeq('isCompound', compoundBranch)
-    testSeqs = appendInstrSeqs(testPrimitiveSeq, testCompoundSeq)
-
-    applyPrimitive = f"{target} = applyPrimitive(func, arglist);"
-    applyPrimitiveSeq = makeInstrSeq([func, arglist], [target], [applyPrimitive])
+        return makeInstrSeq(
+            [func],
+            [],
+            [f"if ({testString}(func)) goto {label};"])
 
     # calling compFuncApp twice generates two different endLabels
-    funcTypes = ('compound', 'compiled')
-    compFuncApps = [
-        compFuncApp(target, endLabel, funcType)
-        for funcType in funcTypes
-    ]
 
-    (compoundLink, compiledLink) = compFuncApps
-
-    primitiveLink = endWithLink(linkage, applyPrimitiveSeq)
-
-    branchLinks = (
-        (compiledBranchInfo, compiledLink),
-        (compoundBranchInfo, compoundLink),
-        (primitiveBranchInfo, primitiveLink)
-    )
-
-    labeled = [
-        appendInstrSeqs(branch, link)
-        for (branch, link) in branchLinks
-    ]
-
-    (compiledLabeled, compoundLabeled, primitiveLabeled) = labeled
-
-    compoundPrimPara = parallelInstrSeqs(compoundLabeled, primitiveLabeled)
-    compiledPara = parallelInstrSeqs(compiledLabeled, compoundPrimPara)
-
-    return appendInstrSeqs(testSeqs, compiledPara, afterCallInfo)
+    return appendInstrSeqs(
+        makeTestGotoSeq(
+            'isPrimitive',
+            primitiveBranch),
+        makeTestGotoSeq(
+            'isCompound',
+            compoundBranch),
+        parallelInstrSeqs(
+            appendInstrSeqs(
+                compiledBranchInfo,
+                compFuncApp(target, endLabel, 'compiled')),
+            parallelInstrSeqs(
+                appendInstrSeqs(
+                    compoundBranchInfo,
+                    compFuncApp(target, endLabel, 'compound')),
+                appendInstrSeqs(
+                    primitiveBranchInfo,
+                    endWithLink(
+                        linkage,
+                        applyPrimitiveSeq)))),
+        afterCallInfo)
 
 
 # pylint: disable=inconsistent-return-statements
@@ -308,51 +316,37 @@ def compFuncApp(target, linkage, funcType):
     valTarg = target == val
     retLink = linkage == ret
 
-    assignVal = "val = COMPLABOBJ(func);"
-    gotoVal = "goto COMP_LABEL;"
-    compiledList = [assignVal, gotoVal]
-
-    saveCont = "save(cont);"
-    gotoCompound = "goto APPLY_COMPOUND;"
-    compoundList = [saveCont, gotoCompound]
-
-    isCompiled = funcType == 'compiled'
+    funcList = (
+        ["val = COMPLABOBJ(func);", "goto COMP_LABEL;"]
+        if funcType == 'compiled' else
+        ["save(cont);", "goto APPLY_COMPOUND;"]
+    )
 
     # typical function call, eg (f 5)
     if valTarg and not retLink:
-        # common instructions
-        assignCont = f"cont = LABELOBJ(_{linkage});"
-
-        funcList = compiledList if isCompiled else compoundList
-        instrList = [assignCont] + funcList
-
-        return makeInstrSeq([func], allRegs, instrList)
+        return makeInstrSeq(
+            [func],
+            allRegs,
+            [f"cont = LABELOBJ(_{linkage});"] + funcList)
 
     # target is func, eg in ((f 4) 5)
     if not valTarg and not retLink:
-        labels = ('FUNC_RETURN',)
-        branches, infos = branchesAndInfos(labels)
-        (funcReturn,) = branches
-        (funcReturnInfo,) = infos
+        (funcReturn,), (funcReturnInfo,) = branchesAndInfos(('FUNC_RETURN',))
 
-        assignCont = f"cont = LABELOBJ(_{funcReturn});"
-
-        funcList = compiledList if isCompiled else compoundList
-
-        assignTarget = f"{target} = val;"
-        gotoLinkage = f"goto {linkage};"
-
-        returnList = [funcReturnInfo, assignTarget, gotoLinkage]
-
-        instrList = [assignCont] + funcList + returnList
-
-        return makeInstrSeq([func], allRegs, instrList)
+        return makeInstrSeq(
+            [func],
+            allRegs,
+            ([f"cont = LABELOBJ(_{funcReturn});"]
+             + funcList
+             + [
+                 funcReturnInfo,
+                 f"{target} = val;",
+                 f"goto {linkage};",
+             ]))
 
     # this gets called, but I don't understand when
     if valTarg and retLink:
-        instrList = compiledList if isCompiled else compoundList
-
-        return makeInstrSeq([func, cont], allRegs, instrList)
+        return makeInstrSeq([func, cont], allRegs, funcList)
 
     Exception('bad function call', 'compFuncApp')
 

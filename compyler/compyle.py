@@ -12,7 +12,6 @@ compyle(['(define f (lambda () 5))', '(define x (f))']).
 
 from parse import parse
 from instructions import statements
-from labels import labels
 from library import library
 from compExp import compExp
 

@@ -1,5 +1,9 @@
-from registers import *
-from instructions import *
+from registers import cont
+from instructions import (
+    emptyInstrSeq,
+    makeInstrSeq,
+    preserving,
+)
 
 ret = 'return'
 nex = 'next'
