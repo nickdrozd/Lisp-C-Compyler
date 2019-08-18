@@ -29,7 +29,7 @@ def compExp(expr, target=val, linkage=nex):
     else:
         try:
             tag, *_ = expr
-            compType = keyword_comps[tag]
+            compType = KEYWORD_COMPS[tag]
         except (KeyError, TypeError):
             compType = compApp
     return compType(expr, target, linkage)
@@ -377,4 +377,4 @@ def makeKeywords():
     return keyword_comps.keys(), keyword_comps
 
 
-keywords, keyword_comps = makeKeywords()
+KEYWORDS, KEYWORD_COMPS = makeKeywords()

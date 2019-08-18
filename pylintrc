@@ -6,7 +6,6 @@ disable=
   invalid-name,
   missing-docstring,
   no-name-in-module,
-  redefined-outer-name,
   too-many-locals,
   undefined-variable,
   unused-import,

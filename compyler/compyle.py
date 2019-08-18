@@ -34,7 +34,7 @@ def compyle(exprSeq):
     print('\n')
 
 
-exprSeq = [
+exprSeqs = [
     # '5'
     # '(define x 5)',
     # '(def x 5)',
@@ -53,5 +53,5 @@ exprSeq = [
     # '((f 4))',
 ]
 
-compyle(exprSeq)
-# compyle(library)
+compyle(exprSeqs)
+compyle(library)

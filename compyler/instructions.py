@@ -1,8 +1,8 @@
 # instructions
 
 
-def makeInstrSeq(needs, modifies, statements):
-    return [needs, modifies, statements]
+def makeInstrSeq(needs, modifies, stmts):
+    return [needs, modifies, stmts]
 
 
 emptyInstrSeq = makeInstrSeq([], [], [])

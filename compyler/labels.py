@@ -1,6 +1,6 @@
 # labels
 
-labels = []
+LABELS = []
 
 
 def branchesAndInfos(labels):
@@ -29,10 +29,8 @@ def newLabelNumber(name):
 
 
 def makeLabel(name):
-    global labels
-    global label_counts
     label = name + '_' + str(newLabelNumber(name))
-    labels += [label]
+    LABELS.append(label)
     return label
 
 # for this to work, numbers can't be used

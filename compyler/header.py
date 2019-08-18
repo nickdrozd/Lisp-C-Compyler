@@ -11,7 +11,7 @@ from parse import parse
 from compExp import compExp
 from instructions import statements
 from keywords import *
-from labels import labels
+from labels import LABELS
 from library import library
 
 
@@ -45,12 +45,12 @@ def makeLispincHeader(exprSeq):
     comp_code.write('\n\n')
 
     def isLastLabel(label):
-        labelsLen = len(labels)
-        labelIndex = labels.index(label)
+        labelsLen = len(LABELS)
+        labelIndex = LABELS.index(label)
         return labelIndex == labelsLen - 1
 
     comp_code.write('#define COMP_CONT(REG) \\' + '\n')
-    for label in labels:
+    for label in LABELS:
         lastLabel = isLastLabel(label)
         labelCheck = (
             'if (GETLABEL(REG) == _' + label +
@@ -63,7 +63,7 @@ def makeLispincHeader(exprSeq):
 
     comp_code.write('#define ALL_COMPILED_LABELS \\' + '\n')
     # i = 0
-    for label in labels:
+    for label in LABELS:
         undscrLabel = '_' + label
         if isLastLabel(label):
             listedLabel = undscrLabel
