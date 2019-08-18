@@ -8,10 +8,20 @@ disable=
   missing-docstring,
   no-else-return,
   no-name-in-module,
-  possibly-unused-variable,
   redefined-outer-name,
   too-many-locals,
-  unused-argument,
   undefined-variable,
   unused-import,
   wildcard-import,
+
+
+[MASTER]
+
+load-plugins=
+  pylint.extensions.bad_builtin
+
+
+[DEPRECATED_BUILTINS]
+
+bad-functions=
+  locals,

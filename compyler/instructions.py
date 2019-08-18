@@ -90,9 +90,9 @@ def preserving(regs, seq1, seq2):
         needsFirst = needsRegister(seq2, firstReg)
         modifiesFirst = modifiesRegister(seq1, firstReg)
         if needsFirst and modifiesFirst:
-            save = "save(%(firstReg)s);" % locals()
+            save = f"save({firstReg});"
             seq1Statements = statements(seq1)
-            restore = "restore(%(firstReg)s);" % locals()
+            restore = f"restore({firstReg});"
             seq1PresInstr = [save] + seq1Statements + [restore]
 
             firstSeq1Needs = listUnion([firstReg], registersNeeded(seq1))

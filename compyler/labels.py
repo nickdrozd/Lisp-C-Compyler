@@ -10,7 +10,7 @@ def branchesAndInfos(labels):
 
 
 def labelInfo(label):
-    print_info = 'print_info("%(label)s");' % locals()
+    print_info = f'print_info("{label}");'
     return label + ':' + ' ' + print_info
 
 

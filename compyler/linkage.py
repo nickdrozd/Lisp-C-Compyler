@@ -11,7 +11,7 @@ def compileLinkage(linkage):
     elif linkage == nex:
         return emptyInstrSeq
     else:
-        return makeInstrSeq([], [], ['goto %(linkage)s;' % locals()])
+        return makeInstrSeq([], [], [f'goto {linkage};'])
 
 
 def endWithLink(linkage, instrSeq):
