@@ -1,31 +1,40 @@
 # instructions
 
 
-def makeInstrSeq(needs, modifies, stmts):
-    return [needs, modifies, stmts]
+class InstrSeq:
+    def __init__(self, needed, modified, stmts):
+        self.needed = needed
+        self.modified = modified
+        self.stmts = stmts
+
+    def needs(self, reg):
+        return reg in self.needed
+
+    def modifies(self, reg):
+        return reg in self.modified
 
 
-emptyInstrSeq = makeInstrSeq([], [], [])
+emptyInstrSeq = InstrSeq([], [], [])
 
 
 def registersNeeded(seq):
-    return [] if isinstance(seq, str) else seq[0]
+    return seq.needed
 
 
 def registersModified(seq):
-    return [] if isinstance(seq, str) else seq[1]
+    return seq.modified
 
 
 def statements(seq):
-    return [seq] if isinstance(seq, str) else seq[2]
+    return seq.stmts
 
 
 def needsRegister(seq, reg):
-    return reg in registersNeeded(seq)
+    return seq.needs(reg)
 
 
 def modifiesRegister(seq, reg):
-    return reg in registersModified(seq)
+    return seq.modifies(reg)
 
 
 def appendInstrSeqs(*seqs):
@@ -42,11 +51,13 @@ def appendInstrSeqs(*seqs):
         statements2 = statements(seq2)
         statementSeq = statements1 + statements2
 
-        return makeInstrSeq(needed, modified, statementSeq)
+        return InstrSeq(needed, modified, statementSeq)
 
     returnSeq = emptyInstrSeq
 
     for seq in seqs:
+        if isinstance(seq, str):
+            seq = InstrSeq([], [], [seq])
         returnSeq = append2Seqs(returnSeq, seq)
 
     return returnSeq
@@ -56,7 +67,7 @@ def tackOnInstrSeq(seq, bodySeq):
     needed = registersNeeded(seq)
     modified = registersModified(seq)
     statementSeq = statements(seq) + statements(bodySeq)
-    return makeInstrSeq(needed, modified, statementSeq)
+    return InstrSeq(needed, modified, statementSeq)
 
 
 def parallelInstrSeqs(seq1, seq2):
@@ -72,7 +83,7 @@ def parallelInstrSeqs(seq1, seq2):
     statements2 = statements(seq2)
     statementSeq = statements1 + statements2
 
-    return makeInstrSeq(needed, modified, statementSeq)
+    return InstrSeq(needed, modified, statementSeq)
 
 
 def preserving(regs, seq1, seq2):
@@ -94,7 +105,7 @@ def preserving(regs, seq1, seq2):
     firstSeq1Needs = listUnion([firstReg], registersNeeded(seq1))
     firstSeq1Mods = listDiff(registersModified(seq1), [firstReg])
 
-    presInstrSeq = makeInstrSeq(firstSeq1Needs, firstSeq1Mods, seq1PresInstr)
+    presInstrSeq = InstrSeq(firstSeq1Needs, firstSeq1Mods, seq1PresInstr)
     return preserving(restRegs, presInstrSeq, seq2)
 
 

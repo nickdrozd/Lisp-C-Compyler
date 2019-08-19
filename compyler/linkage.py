@@ -1,7 +1,7 @@
 from registers import CONT
 from instructions import (
     emptyInstrSeq,
-    makeInstrSeq,
+    InstrSeq,
     preserving,
 )
 
@@ -11,12 +11,12 @@ NEX = 'next'
 
 def compileLinkage(linkage):
     if linkage == RET:
-        return makeInstrSeq([CONT], [], ['goto CONTINUE;'])
+        return InstrSeq([CONT], [], ['goto CONTINUE;'])
 
     if linkage == NEX:
         return emptyInstrSeq
 
-    return makeInstrSeq([], [], [f'goto {linkage};'])
+    return InstrSeq([], [], [f'goto {linkage};'])
 
 
 def endWithLink(linkage, instrSeq):
