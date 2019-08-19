@@ -11,7 +11,7 @@ from parse import parse
 from compExp import compExp
 from instructions import statements
 from labels import LABELS
-from library import library
+from library import LIBRARY
 
 
 def makeLispincHeader(exprSeq):
@@ -81,4 +81,4 @@ def makeLispincHeader(exprSeq):
     comp_code.write('\n\n' + '#endif' + '\n')
 
 
-makeLispincHeader(library)
+makeLispincHeader(LIBRARY)

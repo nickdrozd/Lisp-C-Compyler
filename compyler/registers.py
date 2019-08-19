@@ -1,8 +1,8 @@
 # registers
-cont = 'cont'
-env = 'env'
-val = 'val'
-func = 'func'
-arglist = 'arglist'
+CONT = 'cont'
+ENV = 'env'
+VAL = 'val'
+FUNC = 'func'
+ARGLIST = 'arglist'
 
-allRegs = (cont, env, val, func, arglist)
+ALLREGS = (CONT, ENV, VAL, FUNC, ARGLIST)

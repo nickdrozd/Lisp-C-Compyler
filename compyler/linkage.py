@@ -1,19 +1,19 @@
-from registers import cont
+from registers import CONT
 from instructions import (
     emptyInstrSeq,
     makeInstrSeq,
     preserving,
 )
 
-ret = 'return'
-nex = 'next'
+RET = 'return'
+NEX = 'next'
 
 
 def compileLinkage(linkage):
-    if linkage == ret:
-        return makeInstrSeq([cont], [], ['goto CONTINUE;'])
+    if linkage == RET:
+        return makeInstrSeq([CONT], [], ['goto CONTINUE;'])
 
-    if linkage == nex:
+    if linkage == NEX:
         return emptyInstrSeq
 
     return makeInstrSeq([], [], [f'goto {linkage};'])
@@ -21,6 +21,6 @@ def compileLinkage(linkage):
 
 def endWithLink(linkage, instrSeq):
     return preserving(
-        [cont],
+        [CONT],
         instrSeq,
         compileLinkage(linkage))

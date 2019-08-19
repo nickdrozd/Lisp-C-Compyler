@@ -142,4 +142,4 @@ arithLib = [
 ]
 
 
-library = listLib + arithLib
+LIBRARY = listLib + arithLib
