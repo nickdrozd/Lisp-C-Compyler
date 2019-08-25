@@ -62,53 +62,61 @@ def compExp(expr, target=VAL, linkage=NEX):
 #----------------------------------#
 
 def compNum(expr, target, linkage):
-    instr = f"{target} = NUMOBJ({expr});"
-    instrSeq = InstrSeq([], [target], [instr])
-    return endWithLink(linkage, instrSeq)
+    return endWithLink(
+        linkage,
+        InstrSeq(
+            [],
+            [target],
+            [f"{target} = NUMOBJ({expr});"]))
 
 
 def compVar(expr, target, linkage):
-    instr = f'{target} = lookup(NAMEOBJ("{expr}"), env);'
-    instrSeq = InstrSeq([ENV], [target], [instr])
-    return endWithLink(linkage, instrSeq)
+    return endWithLink(
+        linkage,
+        InstrSeq(
+            [ENV],
+            [target],
+            [f'{target} = lookup(NAMEOBJ("{expr}"), env);']))
 
 
 def compQuote(expr, target, linkage):
     _, text = expr
-    lispText = schemify(text)
 
-    instr = f'{target} = parse("{lispText}\\n");'
-    instrSeq = InstrSeq([], [target], [instr])
-    return endWithLink(linkage, instrSeq)
+    return endWithLink(
+        linkage,
+        InstrSeq(
+            [],
+            [target],
+            [f'{target} = parse("{schemify(text)}\\n");']))
 
 
 def compAssDef(CFunc):
     "CFunc is string"
 
     def isSugarDef(exp):
-    # list? tuple? something more general?
+        # list? tuple? something more general?
         return isinstance(exp[1], list)
 
     def transformSugarDef(exp):
         if not isSugarDef(exp):
             return exp
-        _, funcArgs, *body = exp
-        f, *args = funcArgs
-        lambdaExp = ['lambda', args] + body
-        return ['define', f, lambdaExp]
+
+        _, (func, *args), *body = exp
+
+        return ['define', func, ['lambda', args] + body]
 
     def comp(expr, target, linkage):
-        expr = transformSugarDef(expr)
+        _, variable, value = transformSugarDef(expr)
 
-        _, variable, value = expr
-        valueCode = compExp(value, VAL, NEX)
-
-        # leave ass/def val as return val
-        instr = CFunc + f'(NAMEOBJ("{variable}"), val, env);'
-        instrSeq = InstrSeq([ENV, VAL], [target], [instr])
-
-        preserved = preserving([ENV], valueCode, instrSeq)
-        return endWithLink(linkage, preserved)
+        return endWithLink(
+            linkage,
+            preserving(
+                [ENV],
+                compExp(value, VAL, NEX),
+                InstrSeq(
+                    [ENV, VAL],
+                    [target],
+                    [f'{CFunc}(NAMEOBJ("{variable}"), val, env);'])))
 
     return comp
 
@@ -152,10 +160,10 @@ def compSeq(seq, target=VAL, linkage=NEX):
     if not rest:
         return compExp(first, target, linkage)
 
-    compFirst = compExp(first, target, NEX)
-    compRest = compSeq(rest, target, linkage)
-    preserved = [ENV, CONT]
-    return preserving(preserved, compFirst, compRest)
+    return preserving(
+        [ENV, CONT],
+        compExp(first, target, NEX),
+        compSeq(rest, target, linkage))
 
 
 def compLambda(expr, target=VAL, linkage=NEX):
@@ -176,60 +184,53 @@ def compLambda(expr, target=VAL, linkage=NEX):
 
 def compLambdaBody(expr, funcEntryInfo):
     _, params, *body = expr
-    lispParams = schemify(params)
 
-    assignFuncEnv = "env = COMPENVOBJ(func);"
-    parseParams = f'unev = parse("{lispParams}\\n");'
-    extendFuncEnv = "env = extendEnv(unev, arglist, env);" # %(params)s ?
-
-    instrList = [
-        funcEntryInfo,
-        assignFuncEnv,
-        parseParams,
-        extendFuncEnv,
-    ]
-
-    instrSeq = InstrSeq([ENV, FUNC, ARGLIST], [ENV], instrList)
-    bodySeq = compSeq(body, VAL, RET)
-    appended = appendInstrSeqs(instrSeq, bodySeq)
-
-    return appended
+    return appendInstrSeqs(
+        InstrSeq([ENV, FUNC, ARGLIST], [ENV], [
+            funcEntryInfo,
+            "env = COMPENVOBJ(func);",
+            f'unev = parse("{schemify(params)}\\n");',
+            "env = extendEnv(unev, arglist, env);",
+        ]),
+        compSeq(body, VAL, RET))
 
 
 def compApp(expr, target=VAL, linkage=NEX):
     function, *arguments = expr
 
-    funcCode = compExp(function, target=FUNC)
-
-    argCodes = [compExp(arg) for arg in arguments]
-    argListCode = constructArglist(argCodes)
-
-    if function in PRIMITIVES:
-        primCall = f"{target} = applyPrimitive(func, arglist);"
-        primCallSeq = InstrSeq([FUNC, ARGLIST], [target], [primCall])
-        funcCallCode = endWithLink(linkage, primCallSeq)
-    else:
-        funcCallCode = compFuncCall(target, linkage)
-
-    arglPresFunc = preserving([FUNC, CONT], argListCode, funcCallCode)
-
-    return preserving([ENV, CONT], funcCode, arglPresFunc)
+    return preserving(
+        [ENV, CONT],
+        compExp(
+            function,
+            target=FUNC),
+        preserving(
+            [FUNC, CONT],
+            constructArglist([
+                compExp(arg)
+                for arg in arguments
+            ]),
+            compFuncCall(target, linkage)
+            if function not in PRIMITIVES else
+            endWithLink(
+                linkage,
+                InstrSeq(
+                    [FUNC, ARGLIST],
+                    [target],
+                    [f"{target} = applyPrimitive(func, arglist);"]))))
 
 
 def constructArglist(argCodes):
-    argCodes = argCodes[::-1]
-
     if not argCodes:
-        instr = "arglist = NULLOBJ;"
-        return InstrSeq([], [ARGLIST], [instr])
+        return InstrSeq([], [ARGLIST], ["arglist = NULLOBJ;"])
 
-    # else:
-    instr = "arglist = CONS(val, NULLOBJ);"
-    instrSeq = InstrSeq([VAL], [ARGLIST], [instr])
+    lastArg, *restArgs = reversed(argCodes)
 
-    lastArg, *restArgs = argCodes
-
-    codeToGetLastArg = appendInstrSeqs(lastArg, instrSeq)
+    codeToGetLastArg = appendInstrSeqs(
+        lastArg,
+        InstrSeq(
+            [VAL],
+            [ARGLIST],
+            ["arglist = CONS(val, NULLOBJ);"]))
 
     return (
         codeToGetLastArg
@@ -243,9 +244,14 @@ def constructArglist(argCodes):
 
 def codeToGetRestArgs(argCodes):
     nextArg, *restArgs = argCodes
-    instr = "arglist = CONS(val, arglist);"
-    instrSeq = InstrSeq([VAL, ARGLIST], [ARGLIST], [instr])
-    codeForNextArg = preserving([ARGLIST], nextArg, instrSeq)
+
+    codeForNextArg = preserving(
+        [ARGLIST],
+        nextArg,
+        InstrSeq(
+            [VAL, ARGLIST],
+            [ARGLIST],
+            ["arglist = CONS(val, arglist);"]))
 
     return (
         codeForNextArg
