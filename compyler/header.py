@@ -13,10 +13,7 @@ from labels import LABELS
 from library import LIBRARY
 
 
-def makeLispincHeader(exprSeq):
-    with open('comp_code.h', 'w') as comp_code:
-
-        heading = '''/*
+HEADER = '''/*
     This code is compiler-generated!
     It may be ugly, but it sure is fast!
     Can you figure out how it works?
@@ -30,14 +27,15 @@ def makeLispincHeader(exprSeq):
 #define COMPILED_CODE_BODY \\
 '''
 
-        comp_code.write(heading)
-        for expr in exprSeq:
-            parsed = parse(expr)
-            compiled = compExp(parsed)
-            code = compiled.stmts
 
-            for line in code:
-                comp_code.write(line + ' \\' + '\n')
+def makeLispincHeader(exprSeq):
+    with open('comp_code.h', 'w') as comp_code:
+        comp_code.write(HEADER)
+
+        for expr in exprSeq:
+            for stmt in compExp(parse(expr)).stmts:
+                comp_code.write(stmt + ' \\\n')
+
         comp_code.write('goto DONE;')
 
         comp_code.write('\n\n')
@@ -47,37 +45,26 @@ def makeLispincHeader(exprSeq):
             labelIndex = LABELS.index(label)
             return labelIndex == labelsLen - 1
 
-        comp_code.write('#define COMP_CONT(REG) \\' + '\n')
+        comp_code.write('#define COMP_CONT(REG)' + ' \\\n')
+
         for label in LABELS:
-            lastLabel = isLastLabel(label)
-            labelCheck = (
-                'if (GETLABEL(REG) == _' + label +
-                ') ' + 'goto ' + label + ';' +
-                ('' if lastLabel else ' \\' + '\n')
+            comp_code.write(
+                f'if (GETLABEL(REG) == _{label}) goto {label};'
+                + ('' if isLastLabel(label) else ' \\\n')
             )
-            comp_code.write(labelCheck)
 
         comp_code.write('\n\n')
 
-        comp_code.write('#define ALL_COMPILED_LABELS \\' + '\n')
-        # i = 0
+        comp_code.write('#define ALL_COMPILED_LABELS' + ' \\\n')
+
         for label in LABELS:
-            undscrLabel = '_' + label
-            if isLastLabel(label):
-                listedLabel = undscrLabel
-            else:
-                listedLabel = undscrLabel + ', \\' + '\n'
-                # commaLabel = undscrLabel + ', '
-                # if i < 2:
-                #   listedLabel = commaLabel
-                #   i += 1
-                # else:
-                #   listedLabel = commaLabel + '\\' + '\n'
-                #   i = 0
+            comp_code.write(
+                f'_{label}'
+                + ('' if isLastLabel(label) else ',' + ' \\\n'))
 
-            comp_code.write(listedLabel)
+        comp_code.write('\n\n')
 
-        comp_code.write('\n\n' + '#endif' + '\n')
+        comp_code.write('#endif' + '\n')
 
 
 if __name__ == '__main__':
