@@ -80,4 +80,5 @@ def makeLispincHeader(exprSeq):
         comp_code.write('\n\n' + '#endif' + '\n')
 
 
-makeLispincHeader(LIBRARY)
+if __name__ == '__main__':
+    makeLispincHeader(LIBRARY)
